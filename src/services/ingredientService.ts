@@ -1,6 +1,7 @@
 import { newId } from "@/domain/common/ids";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
+import { referencedIngredientIds } from "@/domain/recipes/matching";
 import type { Repositories } from "@/repositories";
 import { clockNow, systemClock, type Clock } from "./clock";
 
@@ -22,7 +23,8 @@ export type CustomIngredientInput = Pick<
 export type DeleteIngredientResult =
   | { ok: true }
   | { ok: false; error: "builtin" | "not_found" }
-  | { ok: false; error: "in_use"; lotCount: number };
+  | { ok: false; error: "in_use"; lotCount: number }
+  | { ok: false; error: "in_recipes"; recipeCount: number };
 
 export class IngredientService {
   constructor(
@@ -65,13 +67,16 @@ export class IngredientService {
     return updated;
   }
 
-  /** Delete a user-created ingredient that no inventory lot references. */
+  /** Delete a user-created ingredient that no inventory lot or recipe references. */
   async deleteCustom(id: string): Promise<DeleteIngredientResult> {
     const existing = await this.repos.ingredients.getById(id);
     if (!existing) return { ok: false, error: "not_found" };
     if (existing.isBuiltin) return { ok: false, error: "builtin" };
     const lotCount = await this.repos.inventory.countLotsForIngredient(id);
     if (lotCount > 0) return { ok: false, error: "in_use", lotCount };
+    const recipes = await this.repos.recipes.listUserCreated();
+    const recipeCount = recipes.filter((r) => referencedIngredientIds(r).includes(id)).length;
+    if (recipeCount > 0) return { ok: false, error: "in_recipes", recipeCount };
     await this.repos.ingredients.delete(id);
     return { ok: true };
   }

@@ -50,6 +50,7 @@ function rowToTransaction(row: SqlRow): InventoryTransaction {
     quantityCount: fromSqlNumber(row.quantity_count),
     createdAt: String(row.created_at),
     notes: fromSqlString(row.notes),
+    recipeId: fromSqlString(row.recipe_id),
   });
 }
 
@@ -142,8 +143,8 @@ export class SqliteInventoryRepository implements InventoryRepository {
 
   async addTransaction(tx: InventoryTransaction): Promise<void> {
     await this.db.execute(
-      `INSERT INTO inventory_transactions (id, inventory_lot_id, type, quantity_g, quantity_count, created_at, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO inventory_transactions (id, inventory_lot_id, type, quantity_g, quantity_count, created_at, notes, recipe_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         tx.id,
         tx.inventoryLotId,
@@ -152,6 +153,7 @@ export class SqliteInventoryRepository implements InventoryRepository {
         toSqlOptional(tx.quantityCount),
         tx.createdAt,
         toSqlOptional(tx.notes),
+        toSqlOptional(tx.recipeId),
       ],
     );
   }

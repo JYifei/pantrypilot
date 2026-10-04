@@ -3,6 +3,7 @@ import { todayIsoDate } from "@/domain/common/dates";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
+import type { Recipe } from "@/domain/recipes/types";
 import type { AppSettings } from "@/domain/settings/settings";
 import i18n from "@/lib/i18n";
 import type { AppServices } from "@/services/appServices";
@@ -14,6 +15,7 @@ export interface InitialAppData {
   definitions: IngredientDefinition[];
   sources: NutritionSource[];
   lots: InventoryLot[];
+  recipes: Recipe[];
 }
 
 /** Holds app-wide state loaded from the database and exposes it via AppContext. */
@@ -30,19 +32,22 @@ export function AppProvider({
   const [definitions, setDefinitions] = useState(initial.definitions);
   const [sources, setSources] = useState(initial.sources);
   const [lots, setLots] = useState(initial.lots);
+  const [recipes, setRecipes] = useState(initial.recipes);
   const [today, setToday] = useState(() => todayIsoDate());
   const [page, setPage] = useState<PageId>("dashboard");
   const [sandbox, setSandbox] = useState<SandboxEntry[]>([]);
 
   const reload = useCallback(async () => {
-    const [nextDefinitions, nextSources, nextLots] = await Promise.all([
+    const [nextDefinitions, nextSources, nextLots, nextRecipes] = await Promise.all([
       services.ingredients.listAll(),
       services.ingredients.listSources(),
       services.inventory.listLots(),
+      services.recipes.listAll(),
     ]);
     setDefinitions(nextDefinitions);
     setSources(nextSources);
     setLots(nextLots);
+    setRecipes(nextRecipes);
     setToday(todayIsoDate());
   }, [services]);
 
@@ -82,6 +87,7 @@ export function AppProvider({
       definitionsById: new Map(definitions.map((d) => [d.id, d])),
       sources,
       lots,
+      recipes,
       today,
       reload,
       page,
@@ -89,7 +95,19 @@ export function AppProvider({
       sandbox,
       setSandbox,
     }),
-    [services, settings, updateSettings, definitions, sources, lots, today, reload, page, sandbox],
+    [
+      services,
+      settings,
+      updateSettings,
+      definitions,
+      sources,
+      lots,
+      recipes,
+      today,
+      reload,
+      page,
+      sandbox,
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

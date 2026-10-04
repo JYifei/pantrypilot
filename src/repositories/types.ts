@@ -1,6 +1,7 @@
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot, InventoryTransaction } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
+import type { Recipe } from "@/domain/recipes/types";
 import type { AppSettings } from "@/domain/settings/settings";
 
 /**
@@ -35,6 +36,19 @@ export interface InventoryRepository {
   deleteAll(): Promise<void>;
 }
 
+export interface RecipeRepository {
+  listAll(): Promise<Recipe[]>;
+  getById(id: string): Promise<Recipe | null>;
+  listUserCreated(): Promise<Recipe[]>;
+  /** Insert or update a recipe (built-in or user-created). */
+  save(recipe: Recipe): Promise<void>;
+  /** Delete a user-created recipe. Built-ins are ignored. */
+  delete(id: string): Promise<void>;
+  /** Remove built-in recipes that are no longer shipped. */
+  deleteBuiltinExcept(keepIds: readonly string[]): Promise<void>;
+  deleteAllUserCreated(): Promise<void>;
+}
+
 export interface SettingsRepository {
   load(): Promise<AppSettings>;
   save(settings: AppSettings): Promise<void>;
@@ -46,5 +60,6 @@ export interface SettingsRepository {
 export interface Repositories {
   ingredients: IngredientRepository;
   inventory: InventoryRepository;
+  recipes: RecipeRepository;
   settings: SettingsRepository;
 }

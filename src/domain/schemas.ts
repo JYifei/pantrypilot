@@ -111,4 +111,41 @@ export const inventoryTransactionSchema = z.object({
   quantityCount: z.number().finite().optional(),
   createdAt: isoDateTime,
   notes: z.string().optional(),
+  recipeId: z.string().min(1).optional(),
+});
+
+export const recipeSchema = z.object({
+  id: z.string().min(1),
+  name: localizedTextSchema,
+  description: localizedTextSchema.optional(),
+  servings: z.number().int().positive(),
+  timeMinutes: z.number().int().nonnegative().optional(),
+  tags: z.array(z.string()),
+  ingredients: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        ingredientId: z.string().min(1),
+        alternatives: z
+          .array(
+            z.object({
+              ingredientId: z.string().min(1),
+              ratio: z.number().finite().positive().optional(),
+            }),
+          )
+          .optional(),
+        anySpecies: z.enum(ANIMAL_SPECIES).optional(),
+        form: z.enum(PRODUCT_FORMS).optional(),
+        grams: z.number().finite().positive(),
+        count: z.number().finite().positive().optional(),
+        optional: z.boolean().optional(),
+      }),
+    )
+    .min(1),
+  seasonings: z.array(localizedTextSchema),
+  steps: z.array(localizedTextSchema),
+  dataQuality: z.enum(["demo", "user"]),
+  isBuiltin: z.boolean(),
+  createdAt: isoDateTime.optional(),
+  updatedAt: isoDateTime.optional(),
 });

@@ -27,19 +27,19 @@ shadcn/ui (Radix) · Lucide · React Hook Form + Zod · i18next · Vitest · pnp
 
 ## Directory layout
 
-| Path               | Contents                                                      |
-| ------------------ | ------------------------------------------------------------- |
-| `src/domain`       | Pure model + logic: taxonomy, nutrition, inventory, backup    |
-| `src/data`         | Built-in ingredient definitions and nutrition source metadata |
-| `src/db`           | `SqlDatabase` interface, adapters, SQL migrations             |
-| `src/repositories` | Repository interfaces and SQLite implementations              |
-| `src/services`     | Application services, seeding, heuristic scores               |
-| `src/app`          | Boot, global state (`AppProvider`), shell and navigation      |
-| `src/features/*`   | One folder per screen: dashboard, inventory, nutrition, …     |
-| `src/components`   | Shared UI; `components/ui` is generated shadcn/ui             |
-| `src/locales`      | `zh-CN.json` (reference), `en-US.json`, `ja-JP.json`          |
-| `src/lib`          | i18n setup, formatting, file save/open helpers                |
-| `src-tauri`        | Rust shell: plugin registration, migrations, capabilities     |
+| Path               | Contents                                                            |
+| ------------------ | ------------------------------------------------------------------- |
+| `src/domain`       | Pure model + logic: taxonomy, nutrition, inventory, recipes, backup |
+| `src/data`         | Built-in ingredient definitions, recipes and nutrition source data  |
+| `src/db`           | `SqlDatabase` interface, adapters, SQL migrations                   |
+| `src/repositories` | Repository interfaces and SQLite implementations                    |
+| `src/services`     | Application services, seeding, heuristic scores                     |
+| `src/app`          | Boot, global state (`AppProvider`), shell and navigation            |
+| `src/features/*`   | One folder per screen: dashboard, inventory, recipes, nutrition, …  |
+| `src/components`   | Shared UI; `components/ui` is generated shadcn/ui                   |
+| `src/locales`      | `zh-CN.json` (reference), `en-US.json`, `ja-JP.json`                |
+| `src/lib`          | i18n setup, formatting, file save/open helpers                      |
+| `src-tauri`        | Rust shell: plugin registration, migrations, capabilities           |
 
 ## Domain model
 
@@ -83,10 +83,44 @@ error }`: consume, adjust, discard, mark opened, change storage, freeze. Remaini
 clamped at zero and over-consumption is an error, not a silent clamp.
 
 Each operation produces an `InventoryTransaction` (`add | consume | adjust | discard`), giving an
-audit trail and the basis for a future meal log.
+audit trail. Consumption from cooking carries the `recipeId`, which is the basis for a future
+meal log.
 
 Expiration status (`expired / today / tomorrow / soon / normal / unknown`) is computed from an
 injected "today", never stored.
+
+### Recipes
+
+A `Recipe` has localised name, description, steps and seasonings, a base `servings` count and a
+list of `RecipeIngredient` lines. Each line references an ingredient definition with an amount
+in edible grams for the base servings, and may be:
+
+- `optional` — not required for the recipe to count as ready;
+- given `alternatives` — other definitions that also satisfy the line, with an optional
+  `ratio` (e.g. cooked rice can be replaced by `0.45 ×` its weight in raw rice);
+- `anySpecies` — any definition of that animal species matches (a misuji steak satisfies a
+  sirloin steak recipe).
+
+Seasonings are plain localised text and are deliberately not matched against inventory.
+
+`src/domain/recipes/matching.ts` is pure:
+
+- `matchRecipe` scales the lines to the requested servings and collects candidate lots per line
+  (expired and depleted lots excluded), giving each line a status of `enough` (with a 5 %
+  tolerance), `partial` or `missing`.
+- Readiness is `ready` when every required line is enough, `almost` when 1–2 required lines are
+  short and at least one has stock, otherwise `missing`. An urgency score rewards recipes that
+  use lots expiring today, tomorrow or within a few days; `compareRecipeMatches` sorts by
+  readiness, then urgency, then the number of short lines.
+- `planCooking` proposes per-lot deductions, earliest expiration first, converting count-only
+  lots through their unit conversions.
+
+`RecipeService.cook` re-validates every proposed deduction with the inventory domain functions
+before writing any of them, so a cook either applies completely or not at all.
+
+Built-in recipes have stable IDs and are re-seeded when `BUILTIN_RECIPES_VERSION` changes;
+built-in rows that are no longer shipped are removed. User recipes are never touched by seeding.
+Built-in recipes cannot be edited directly but can be duplicated into a user recipe.
 
 ## Persistence
 
@@ -101,7 +135,7 @@ injected "today", never stored.
 
 The Tauri SQL plugin uses a connection pool, so multi-statement transactions across calls are
 not reliable. Services order writes so that a failure leaves consistent data (transaction row
-first, then the lot update).
+first, then the lot update) and validate multi-lot operations up front.
 
 ### Migrations
 
@@ -111,48 +145,62 @@ Migrations are plain SQL files in `src/db/migrations/`. The **same file** is use
 - TypeScript: imported with `?raw` and applied by a small runner (`schema_migrations` table)
   for sql.js.
 
+| Version | File                      | Adds                                                        |
+| ------- | ------------------------- | ----------------------------------------------------------- |
+| 1       | `0001_initial_schema.sql` | ingredient definitions, lots, transactions, settings        |
+| 2       | `0002_recipes.sql`        | `recipes` table, `inventory_transactions.recipe_id` + index |
+
 Released migrations are never edited.
 
 ### Storage decisions
 
-- Localised text, nutrition facts, unit conversions and arrays are stored as JSON columns.
-  They are always read and written as a whole and never queried by field, so normalising them
-  would add joins without benefit.
+- Localised text, nutrition facts, unit conversions, recipe lines, steps and arrays are stored
+  as JSON columns. They are always read and written as a whole and never queried by field, so
+  normalising them would add joins without benefit.
 - Settings are key/value rows with JSON values. Keys prefixed `meta.` hold internal state such
-  as the seeded built-in dataset version.
+  as the seeded built-in dataset and recipe versions.
 - Built-in definitions are re-seeded (upserted) when `BUILTIN_DATASET_VERSION` changes. User
   definitions are never touched by seeding.
+- Rows with equal timestamps are ordered by `created_at, rowid` so history is deterministic.
 
 ## Repository and service layer
 
-Repositories (`IngredientRepository`, `InventoryRepository`, `SettingsRepository`) map rows to
-domain objects and contain all SQL. Services hold use cases (`InventoryService.consume`,
-`IngredientService.deleteCustom` with "in use" checks, `BackupService.importReplacingAll`).
-`createAppServices(db, clock)` wires everything and seeds built-in data. React reaches services
-only through `useApp()`.
+Repositories (`IngredientRepository`, `InventoryRepository`, `RecipeRepository`,
+`SettingsRepository`) map rows to domain objects and contain all SQL. Services hold use cases
+(`InventoryService.consume`, `IngredientService.deleteCustom` with "in use" / "in recipes"
+checks, `RecipeService.cook`, `BackupService.importReplacingAll`). `createAppServices(db, clock)`
+wires everything and seeds built-in data. React reaches services only through `useApp()`.
 
 ## Internationalisation
 
 i18next with three resource files. `zh-CN` is the reference and default language; missing keys
 fall back to `en-US`, then `zh-CN`. Enum values are translated by key (`cut.misuji`,
-`form.steak`), so the domain never contains display strings. Food names are data, not locale
-keys. Lint and tests guard against hard-coded text and missing keys.
+`form.steak`), so the domain never contains display strings. Food and recipe names are data, not
+locale keys. Lint and tests guard against hard-coded text and missing keys.
 
 ## Backup format
 
 ```json
 {
   "format": "pantrypilot-backup",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "exportedAt": "2026-10-04T12:00:00.000Z",
   "appVersion": "0.1.0",
-  "data": { "ingredients": [], "inventoryLots": [], "transactions": [], "settings": {} }
+  "data": {
+    "ingredients": [],
+    "inventoryLots": [],
+    "transactions": [],
+    "recipes": [],
+    "settings": {}
+  }
 }
 ```
 
-Only user-created ingredients are exported; built-ins are referenced by their stable IDs. On
-import the file is validated with Zod, migrated step by step through `BACKUP_MIGRATIONS` to the
-current version, checked for dangling references, and then replaces all user data.
+Only user-created ingredients and recipes are exported; built-ins are referenced by their stable
+IDs. On import the file is validated with Zod, migrated step by step through `BACKUP_MIGRATIONS`
+to the current version (1 → 2 adds an empty `recipes` list), checked for dangling references
+(including ingredients used by recipes and collisions with built-in recipe IDs), and then
+replaces all user data.
 
 ## Security
 
@@ -164,12 +212,13 @@ current version, checked for dangling references, and then replaces all user dat
 
 Vitest in a Node environment. Domain logic is tested directly; services and repositories are
 tested against an in-memory sql.js database running the real migrations, including a simulated
-restart (export database bytes → reopen) and a backup round trip. Locale files are tested for
-key parity and placeholder consistency.
+restart (export database bytes → reopen), a backup round trip and cooking a recipe end to end.
+Built-in recipes are checked for valid ingredient references and complete translations. Locale
+files are tested for key parity and placeholder consistency.
 
 ## Future directions
 
-Recipes (V0.2, see ROADMAP.md) will add `recipes` / `recipe_ingredients` tables referencing
-ingredient definitions, a matching service that ranks recipes by stock coverage and expiration
-urgency, and a "cook" use case that consumes from lots in expiration order. Optional LLM input
-would sit in front of the existing services as another input method, never as a data store.
+- Meal log built on the `recipeId` of cooking transactions, with repeated-dish hints.
+- Shopping list generated from the short lines of chosen recipes.
+- Optional LLM input (natural language or photos, recipe suggestions) would sit in front of the
+  existing services as another input method, never as a data store, and stay off by default.

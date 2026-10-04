@@ -4,13 +4,15 @@ import { BackupService } from "./backupService";
 import { systemClock, type Clock } from "./clock";
 import { IngredientService } from "./ingredientService";
 import { InventoryService } from "./inventoryService";
-import { ensureBuiltinData } from "./seedService";
+import { RecipeService } from "./recipeService";
+import { ensureBuiltinData, ensureBuiltinRecipes } from "./seedService";
 
 export interface AppServices {
   database: SqlDatabase;
   repositories: Repositories;
   inventory: InventoryService;
   ingredients: IngredientService;
+  recipes: RecipeService;
   backup: BackupService;
 }
 
@@ -21,11 +23,13 @@ export async function createAppServices(
 ): Promise<AppServices> {
   const repositories = createSqliteRepositories(database);
   await ensureBuiltinData(repositories);
+  await ensureBuiltinRecipes(repositories);
   return {
     database,
     repositories,
     inventory: new InventoryService(repositories, clock),
     ingredients: new IngredientService(repositories, clock),
+    recipes: new RecipeService(repositories, clock),
     backup: new BackupService(repositories, clock),
   };
 }

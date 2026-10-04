@@ -76,4 +76,6 @@ export interface InventoryTransaction {
   quantityCount?: number;
   createdAt: IsoDateTime;
   notes?: string;
+  /** Set when the change came from cooking a recipe. */
+  recipeId?: string;
 }

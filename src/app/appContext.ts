@@ -4,10 +4,18 @@ import { localize, type LocaleCode } from "@/domain/common/localizedText";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
+import type { Recipe } from "@/domain/recipes/types";
 import type { AppSettings } from "@/domain/settings/settings";
 import type { AppServices } from "@/services/appServices";
 
-export const PAGES = ["dashboard", "inventory", "nutrition", "ingredients", "settings"] as const;
+export const PAGES = [
+  "dashboard",
+  "inventory",
+  "recipes",
+  "nutrition",
+  "ingredients",
+  "settings",
+] as const;
 export type PageId = (typeof PAGES)[number];
 
 /** One line in the nutrition sandbox. Kept in memory only. */
@@ -26,6 +34,7 @@ export interface AppContextValue {
   definitionsById: ReadonlyMap<string, IngredientDefinition>;
   sources: NutritionSource[];
   lots: InventoryLot[];
+  recipes: Recipe[];
   today: IsoDate;
   /** Re-read ingredients, sources and inventory from the database. */
   reload(): Promise<void>;

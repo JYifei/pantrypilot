@@ -51,6 +51,23 @@ const data: BackupData = {
       type: "consume",
       quantityG: 100,
       createdAt: "2026-10-04T01:00:00.000Z",
+      recipeId: "recipe_beef_steak",
+    },
+  ],
+  recipes: [
+    {
+      id: "9a7e5d0c-7b1f-4c1e-8f43-2f6d2b1e0a55",
+      name: { zhCN: "味噌牛排" },
+      servings: 1,
+      tags: [],
+      ingredients: [
+        { key: "beef", ingredientId: "beef_misuji_raw", anySpecies: "beef", grams: 200 },
+        { key: "miso", ingredientId: "6f1c2a52-0d5e-4d55-9a33-0d7f2f8b6c11", grams: 20 },
+      ],
+      seasonings: [],
+      steps: [{ zhCN: "煎" }],
+      dataQuality: "user",
+      isBuiltin: false,
     },
   ],
   settings: DEFAULT_SETTINGS,
@@ -86,7 +103,7 @@ describe("backup format", () => {
   });
 
   it("reports invalid content with a path", () => {
-    const broken = createBackup(data, "x");
+    const broken = structuredClone(createBackup(data, "x"));
     (broken.data.inventoryLots[0] as { storage: string }).storage = "garage";
     const result = parseBackup(JSON.stringify(broken));
     expect(result.ok).toBe(false);
@@ -99,6 +116,28 @@ describe("backup format", () => {
   it("detects dangling references", () => {
     const backup = createBackup(data, "x");
     expect(findBackupReferenceProblems(backup, new Set(["beef_misuji_raw"]))).toEqual([]);
-    expect(findBackupReferenceProblems(backup, new Set())).toHaveLength(1);
+    // The lot and the recipe's beef line both point at the missing built-in.
+    expect(findBackupReferenceProblems(backup, new Set())).toHaveLength(2);
+  });
+
+  it("detects recipes that reference unknown ingredients", () => {
+    const backup = createBackup({ ...data, ingredients: [] }, "x");
+    const problems = findBackupReferenceProblems(backup, new Set(["beef_misuji_raw"]));
+    expect(problems).toEqual([
+      "recipe 9a7e5d0c-7b1f-4c1e-8f43-2f6d2b1e0a55 → unknown ingredient 6f1c2a52-0d5e-4d55-9a33-0d7f2f8b6c11",
+    ]);
+  });
+
+  it("upgrades a V0.1 (schema version 1) backup without recipes", () => {
+    const v1 = { ...createBackup(data, "x"), schemaVersion: 1 } as Record<string, unknown>;
+    const { recipes: _dropped, ...v1Data } = data;
+    v1.data = v1Data;
+    const result = parseBackup(JSON.stringify(v1));
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.backup.schemaVersion).toBe(CURRENT_BACKUP_SCHEMA_VERSION);
+      expect(result.backup.data.recipes).toEqual([]);
+      expect(result.backup.data.inventoryLots).toHaveLength(1);
+    }
   });
 });

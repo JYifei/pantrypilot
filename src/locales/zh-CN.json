@@ -13,7 +13,8 @@
     "inventory": "库存",
     "nutrition": "营养",
     "ingredients": "食材库",
-    "settings": "设置"
+    "settings": "设置",
+    "recipes": "菜谱"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -160,7 +161,11 @@
     "openNutrition": "打开营养计算",
     "emptyTitle": "库存还是空的",
     "emptyBody": "从添加第一件食材开始吧，例如一块牛排或一袋小松菜。",
-    "addFirst": "添加食材"
+    "addFirst": "添加食材",
+    "cookableTitle": "现在能做",
+    "cookableSubtitle": "优先用掉快过期的食材",
+    "cookableEmpty": "暂时没有能直接做的菜。去菜谱页看看还差什么。",
+    "openRecipes": "查看全部菜谱"
   },
   "inventory": {
     "title": "库存",
@@ -271,7 +276,10 @@
     "date": "日期格式应为 YYYY-MM-DD",
     "unitRequired": "请选择单位",
     "nameRequired": "请填写中文名称",
-    "nutritionIncomplete": "填写营养数据时，热量、蛋白质、脂肪和碳水化合物都必须填写"
+    "nutritionIncomplete": "填写营养数据时，热量、蛋白质、脂肪和碳水化合物都必须填写",
+    "recipeNameRequired": "请填写菜谱名称",
+    "positiveInteger": "请输入大于 0 的整数",
+    "requiredIngredient": "至少需要一样非可选的食材"
   },
   "consume": {
     "title": "消耗：{{name}}",
@@ -391,7 +399,8 @@
     "formFrozen": "冷冻",
     "formNutrition": "营养数据（每 100 g 可食部分，可选）",
     "formNutritionHint": "不确定就留空。留空表示“未知”，不会被当作 0。",
-    "formMoreNutrients": "更多营养素"
+    "formMoreNutrients": "更多营养素",
+    "deleteInRecipes": "有 {{count}} 个自定义菜谱用到了这个食材，请先修改或删除这些菜谱"
   },
   "settings": {
     "title": "设置",
@@ -438,5 +447,76 @@
     "version": "版本 {{version}}",
     "demoNotice": "内置营养数据为演示用近似值，仅用于开发与测试，未来将支持导入官方数据集。",
     "licenseNotice": "开源许可证尚未选定。"
+  },
+  "recipes": {
+    "title": "菜谱",
+    "subtitle": "根据现有库存，看看今天能做什么",
+    "add": "新建菜谱",
+    "searchPlaceholder": "搜索菜名或食材（中文 / English / 日本語）",
+    "filterAll": "全部",
+    "filterReady": "现在能做",
+    "filterAlmost": "差一点",
+    "filterCustom": "我的菜谱",
+    "demoNotice": "内置菜谱为示例：用量是常见家常分量，不是经过测试的专业食谱。调味料不计入库存匹配。",
+    "empty": "没有符合条件的菜谱",
+    "readyBadge": "可以做",
+    "almostBadge": "差 {{count}} 样",
+    "missingBadge": "缺 {{count}} 样",
+    "usesExpiring": "能用掉快过期的：{{names}}",
+    "minutes": "{{count}} 分钟",
+    "servings": "{{count}} 人份",
+    "servingsLabel": "份数",
+    "demoRecipe": "示例菜谱",
+    "custom": "我的菜谱",
+    "ingredientsTitle": "食材",
+    "seasoningsTitle": "调味料（不计入库存）",
+    "stepsTitle": "做法",
+    "anyCut": "任意{{species}}部位均可",
+    "alternatives": "也可用：{{names}}",
+    "stockEnough": "库存 {{have}}，够用",
+    "stockPartial": "库存只有 {{have}}，需要 {{need}}",
+    "stockMissing": "没有库存",
+    "stockUnknown": "有库存（数量未记录）",
+    "nutritionTitle": "每份估算营养",
+    "nutritionNote": "按主要食材估算，不含调味料；内置营养数据为演示数据。* 表示部分食材缺少该项数据。",
+    "cook": "做这道菜",
+    "duplicate": "复制为我的菜谱",
+    "copySuffix": "（副本）",
+    "confirmDeleteTitle": "删除这个菜谱？",
+    "confirmDeleteBody": "将删除“{{name}}”。已记录的库存流水不受影响。",
+    "toastCreated": "已添加菜谱",
+    "toastUpdated": "已更新菜谱",
+    "toastDeleted": "已删除菜谱",
+    "toastDuplicated": "已复制为“{{name}}”，可以自由修改",
+    "cookTitle": "做 {{name}}",
+    "cookDescription": "按 {{count}} 人份计算。确认从哪批库存扣减、扣多少；默认优先使用最早到期的，不想扣的填 0。",
+    "cookRemaining": "剩余 {{amount}}",
+    "cookNeed": "需要 {{amount}}",
+    "cookNoStock": "库存里没有，将跳过",
+    "cookConfirm": "确认并扣减库存",
+    "cookDone": "已从 {{count}} 批库存中扣减",
+    "cookErrors": {
+      "recipe_not_found": "找不到这个菜谱",
+      "nothing_to_consume": "没有需要扣减的数量",
+      "lot_not_found": "库存批次已不存在：{{name}}",
+      "invalid_quantity": "数量无效：{{name}}",
+      "exceeds_remaining": "超过了剩余量：{{name}}",
+      "weight_not_tracked": "这批库存没有记录重量：{{name}}",
+      "count_not_tracked": "这批库存没有记录数量：{{name}}"
+    },
+    "formTitleNew": "新建菜谱",
+    "formTitleEdit": "编辑菜谱",
+    "formName": "菜名",
+    "formDescription": "简介（可选）",
+    "formServings": "份数",
+    "formTime": "用时（分钟，可选）",
+    "formIngredients": "食材",
+    "formIngredientsHint": "用量按上面的份数填写可食部分的克数。酱油、盐等调味料写在下方，不参与库存匹配。",
+    "formIngredient": "食材",
+    "formGrams": "用量（g）",
+    "formAddIngredient": "添加食材",
+    "formSeasonings": "调味料（用逗号分隔，可选）",
+    "formSteps": "做法（每行一步）",
+    "chooseIngredient": "选择食材"
   }
 }

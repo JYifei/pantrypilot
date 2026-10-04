@@ -2,10 +2,13 @@ import { z } from "zod";
 import { APP_CONFIG } from "../../config/app";
 import type { IngredientDefinition } from "../ingredients/types";
 import type { InventoryLot, InventoryTransaction } from "../inventory/types";
+import { referencedIngredientIds } from "../recipes/matching";
+import type { Recipe } from "../recipes/types";
 import {
   ingredientDefinitionSchema,
   inventoryLotSchema,
   inventoryTransactionSchema,
+  recipeSchema,
 } from "../schemas";
 import { appSettingsSchema, type AppSettings } from "../settings/settings";
 
@@ -18,13 +21,15 @@ import { appSettingsSchema, type AppSettings } from "../settings/settings";
  *   2. add a step to BACKUP_MIGRATIONS that upgrades the previous version,
  *   3. keep the old steps so any historical export can still be imported.
  */
-export const CURRENT_BACKUP_SCHEMA_VERSION = 1;
+export const CURRENT_BACKUP_SCHEMA_VERSION = 2;
 
 export interface BackupData {
   /** Only user-created ingredients. Built-ins ship with the app. */
   ingredients: IngredientDefinition[];
   inventoryLots: InventoryLot[];
   transactions: InventoryTransaction[];
+  /** Only user-created recipes (added in schema version 2). */
+  recipes: Recipe[];
   settings: AppSettings;
 }
 
@@ -45,6 +50,7 @@ const backupFileSchema = z.object({
     ingredients: z.array(ingredientDefinitionSchema),
     inventoryLots: z.array(inventoryLotSchema),
     transactions: z.array(inventoryTransactionSchema),
+    recipes: z.array(recipeSchema),
     settings: appSettingsSchema,
   }),
 });
@@ -52,8 +58,12 @@ const backupFileSchema = z.object({
 /** Upgrade step from version N to N + 1, keyed by N. */
 type BackupMigration = (raw: Record<string, unknown>) => Record<string, unknown>;
 const BACKUP_MIGRATIONS: Record<number, BackupMigration> = {
-  // Example for the future:
-  // 1: (raw) => ({ ...raw, schemaVersion: 2, data: { ...raw.data, mealLogs: [] } }),
+  // V0.1 → V0.2: recipes did not exist yet.
+  1: (raw) => ({
+    ...raw,
+    schemaVersion: 2,
+    data: { ...(isRecord(raw.data) ? raw.data : {}), recipes: [] },
+  }),
 };
 
 export function createBackup(data: BackupData, exportedAt: string): BackupFile {
@@ -153,6 +163,11 @@ export function findBackupReferenceProblems(
   for (const tx of backup.data.transactions) {
     if (!lotIds.has(tx.inventoryLotId)) {
       problems.push(`transaction ${tx.id} → unknown lot ${tx.inventoryLotId}`);
+    }
+  }
+  for (const recipe of backup.data.recipes) {
+    for (const id of referencedIngredientIds(recipe)) {
+      if (!ingredientIds.has(id)) problems.push(`recipe ${recipe.id} → unknown ingredient ${id}`);
     }
   }
   return problems;

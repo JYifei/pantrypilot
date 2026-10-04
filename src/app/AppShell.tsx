@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ChefHat,
   LayoutDashboard,
   Refrigerator,
   Salad,
@@ -11,6 +12,7 @@ import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { IngredientsPage } from "@/features/ingredients/IngredientsPage";
 import { InventoryPage } from "@/features/inventory/InventoryPage";
 import { NutritionPage } from "@/features/nutrition/NutritionPage";
+import { RecipesPage } from "@/features/recipes/RecipesPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { cn } from "@/lib/utils";
 import { useApp, type PageId } from "./appContext";
@@ -18,6 +20,7 @@ import { useApp, type PageId } from "./appContext";
 const NAV_ITEMS: { id: PageId; icon: LucideIcon }[] = [
   { id: "dashboard", icon: LayoutDashboard },
   { id: "inventory", icon: Refrigerator },
+  { id: "recipes", icon: ChefHat },
   { id: "nutrition", icon: Salad },
   { id: "ingredients", icon: BookOpen },
   { id: "settings", icon: Settings },
@@ -29,6 +32,8 @@ function CurrentPage({ page }: { page: PageId }) {
       return <DashboardPage />;
     case "inventory":
       return <InventoryPage />;
+    case "recipes":
+      return <RecipesPage />;
     case "nutrition":
       return <NutritionPage />;
     case "ingredients":

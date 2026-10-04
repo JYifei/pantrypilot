@@ -5,14 +5,14 @@ import { clockNow, systemClock, type Clock } from "./clock";
 export type ImportResult =
   | {
       ok: true;
-      counts: { ingredients: number; inventoryLots: number; transactions: number };
+      counts: { ingredients: number; inventoryLots: number; transactions: number; recipes: number };
     }
   | { ok: false; problems: string[] };
 
 /**
  * Export / import of all user data as a single JSON document.
- * Built-in ingredients are not exported: they ship with the app and are
- * referenced by their stable IDs.
+ * Built-in ingredients and recipes are not exported: they ship with the app
+ * and are referenced by their stable IDs.
  */
 export class BackupService {
   constructor(
@@ -21,14 +21,15 @@ export class BackupService {
   ) {}
 
   async exportAll(): Promise<BackupFile> {
-    const [ingredients, inventoryLots, transactions, settings] = await Promise.all([
+    const [ingredients, inventoryLots, transactions, recipes, settings] = await Promise.all([
       this.repos.ingredients.listUserCreated(),
       this.repos.inventory.listLots(),
       this.repos.inventory.listTransactions(),
+      this.repos.recipes.listUserCreated(),
       this.repos.settings.load(),
     ]);
     return createBackup(
-      { ingredients, inventoryLots, transactions, settings },
+      { ingredients, inventoryLots, transactions, recipes, settings },
       clockNow(this.clock),
     );
   }
@@ -42,19 +43,31 @@ export class BackupService {
     const builtinIds = new Set(
       (await this.repos.ingredients.listAll()).filter((d) => d.isBuiltin).map((d) => d.id),
     );
+    const builtinRecipeIds = new Set(
+      (await this.repos.recipes.listAll()).filter((r) => r.isBuiltin).map((r) => r.id),
+    );
     const problems = findBackupReferenceProblems(backup, builtinIds);
     for (const ingredient of backup.data.ingredients) {
       if (builtinIds.has(ingredient.id)) {
         problems.push(`ingredient ${ingredient.id} collides with a built-in ID`);
       }
     }
+    for (const recipe of backup.data.recipes) {
+      if (builtinRecipeIds.has(recipe.id)) {
+        problems.push(`recipe ${recipe.id} collides with a built-in ID`);
+      }
+    }
     if (problems.length > 0) return { ok: false, problems };
 
     await this.repos.inventory.deleteAll();
+    await this.repos.recipes.deleteAllUserCreated();
     await this.repos.ingredients.deleteAllUserCreated();
 
     for (const ingredient of backup.data.ingredients) {
       await this.repos.ingredients.save({ ...ingredient, isBuiltin: false });
+    }
+    for (const recipe of backup.data.recipes) {
+      await this.repos.recipes.save({ ...recipe, isBuiltin: false });
     }
     for (const lot of backup.data.inventoryLots) {
       await this.repos.inventory.saveLot(lot);
@@ -70,6 +83,7 @@ export class BackupService {
         ingredients: backup.data.ingredients.length,
         inventoryLots: backup.data.inventoryLots.length,
         transactions: backup.data.transactions.length,
+        recipes: backup.data.recipes.length,
       },
     };
   }

@@ -13,7 +13,8 @@
     "inventory": "在庫",
     "nutrition": "栄養",
     "ingredients": "食材ライブラリ",
-    "settings": "設定"
+    "settings": "設定",
+    "recipes": "レシピ"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -160,7 +161,11 @@
     "openNutrition": "栄養計算を開く",
     "emptyTitle": "在庫はまだ空です",
     "emptyBody": "まずは買ったものを登録しましょう。ステーキ肉や小松菜など。",
-    "addFirst": "食材を追加"
+    "addFirst": "食材を追加",
+    "cookableTitle": "今すぐ作れる",
+    "cookableSubtitle": "期限が近い食材を優先して使います",
+    "cookableEmpty": "今すぐ作れる料理はありません。レシピページで足りない食材を確認しましょう。",
+    "openRecipes": "すべてのレシピ"
   },
   "inventory": {
     "title": "在庫",
@@ -271,7 +276,10 @@
     "date": "YYYY-MM-DD 形式で入力してください",
     "unitRequired": "単位を選んでください",
     "nameRequired": "中国語名は必須です",
-    "nutritionIncomplete": "栄養データを入力する場合、エネルギー・たんぱく質・脂質・炭水化物はすべて必須です"
+    "nutritionIncomplete": "栄養データを入力する場合、エネルギー・たんぱく質・脂質・炭水化物はすべて必須です",
+    "recipeNameRequired": "レシピ名を入力してください",
+    "positiveInteger": "1 以上の整数を入力してください",
+    "requiredIngredient": "必須の食材を 1 つ以上追加してください"
   },
   "consume": {
     "title": "使う：{{name}}",
@@ -391,7 +399,8 @@
     "formFrozen": "冷凍",
     "formNutrition": "栄養データ（可食部 100 g あたり・任意）",
     "formNutritionHint": "わからなければ空欄のままに。空欄は「不明」であり、0 とは扱いません。",
-    "formMoreNutrients": "その他の栄養素"
+    "formMoreNutrients": "その他の栄養素",
+    "deleteInRecipes": "{{count}} 件の自作レシピがこの食材を使っています。先にレシピを編集または削除してください"
   },
   "settings": {
     "title": "設定",
@@ -438,5 +447,76 @@
     "version": "バージョン {{version}}",
     "demoNotice": "内蔵の栄養データは開発・テスト用の概算値です。公式データセットの読み込みに対応予定です。",
     "licenseNotice": "オープンソースライセンスはまだ決まっていません。"
+  },
+  "recipes": {
+    "title": "レシピ",
+    "subtitle": "今ある食材で作れる料理を探す",
+    "add": "レシピを作成",
+    "searchPlaceholder": "料理名・食材で検索（中文 / English / 日本語）",
+    "filterAll": "すべて",
+    "filterReady": "作れる",
+    "filterAlmost": "あと少し",
+    "filterCustom": "マイレシピ",
+    "demoNotice": "内蔵レシピは一般的な家庭料理の分量による例で、検証済みのレシピではありません。調味料は在庫照合の対象外です。",
+    "empty": "該当するレシピがありません",
+    "readyBadge": "作れる",
+    "almostBadge": "あと {{count}} 品",
+    "missingBadge": "{{count}} 品不足",
+    "usesExpiring": "期限が近い食材を使えます：{{names}}",
+    "minutes": "{{count}} 分",
+    "servings": "{{count}} 人分",
+    "servingsLabel": "人数",
+    "demoRecipe": "サンプルレシピ",
+    "custom": "マイレシピ",
+    "ingredientsTitle": "材料",
+    "seasoningsTitle": "調味料（在庫対象外）",
+    "stepsTitle": "作り方",
+    "anyCut": "{{species}}ならどの部位でも可",
+    "alternatives": "代用可：{{names}}",
+    "stockEnough": "在庫 {{have}}",
+    "stockPartial": "在庫 {{have}}（必要量 {{need}}）",
+    "stockMissing": "在庫なし",
+    "stockUnknown": "在庫あり（量は未記録）",
+    "nutritionTitle": "1 人分の推定栄養",
+    "nutritionNote": "主な材料から推定（調味料を除く）。内蔵の栄養値はデモデータです。* は一部の材料にデータがないことを示します。",
+    "cook": "この料理を作る",
+    "duplicate": "マイレシピにコピー",
+    "copySuffix": "（コピー）",
+    "confirmDeleteTitle": "このレシピを削除しますか？",
+    "confirmDeleteBody": "「{{name}}」を削除します。記録済みの在庫履歴はそのまま残ります。",
+    "toastCreated": "レシピを追加しました",
+    "toastUpdated": "レシピを更新しました",
+    "toastDeleted": "レシピを削除しました",
+    "toastDuplicated": "「{{name}}」としてコピーしました。自由に編集できます",
+    "cookTitle": "{{name}}を作る",
+    "cookDescription": "{{count}} 人分で計算します。どの在庫からどれだけ減らすか確認してください。期限が近いものから使います。使わない在庫は 0 にしてください。",
+    "cookRemaining": "残り {{amount}}",
+    "cookNeed": "必要量 {{amount}}",
+    "cookNoStock": "在庫なし（スキップします）",
+    "cookConfirm": "確定して在庫を減らす",
+    "cookDone": "{{count}} 件の在庫から差し引きました",
+    "cookErrors": {
+      "recipe_not_found": "レシピが見つかりません",
+      "nothing_to_consume": "差し引く量がありません",
+      "lot_not_found": "在庫が見つかりません：{{name}}",
+      "invalid_quantity": "量が正しくありません：{{name}}",
+      "exceeds_remaining": "残量を超えています：{{name}}",
+      "weight_not_tracked": "この在庫は重量が記録されていません：{{name}}",
+      "count_not_tracked": "この在庫は個数が記録されていません：{{name}}"
+    },
+    "formTitleNew": "レシピを作成",
+    "formTitleEdit": "レシピを編集",
+    "formName": "料理名",
+    "formDescription": "説明（任意）",
+    "formServings": "人数",
+    "formTime": "調理時間（分・任意）",
+    "formIngredients": "材料",
+    "formIngredientsHint": "上の人数分の可食部の重さ（g）を入力します。醤油や塩などの調味料は下の欄に書いてください（在庫照合の対象外）。",
+    "formIngredient": "食材",
+    "formGrams": "分量（g）",
+    "formAddIngredient": "材料を追加",
+    "formSeasonings": "調味料（カンマ区切り・任意）",
+    "formSteps": "作り方（1 行に 1 ステップ）",
+    "chooseIngredient": "食材を選択"
   }
 }

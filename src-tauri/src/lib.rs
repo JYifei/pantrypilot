@@ -7,12 +7,20 @@ const DATABASE_URL: &str = "sqlite:pantrypilot.db";
 /// Versions must match `MIGRATIONS` in src/db/migrations/index.ts.
 /// Never edit a released migration: the plugin stores checksums.
 fn migrations() -> Vec<Migration> {
-    vec![Migration {
-        version: 1,
-        description: "initial_schema",
-        sql: include_str!("../../src/db/migrations/0001_initial_schema.sql"),
-        kind: MigrationKind::Up,
-    }]
+    vec![
+        Migration {
+            version: 1,
+            description: "initial_schema",
+            sql: include_str!("../../src/db/migrations/0001_initial_schema.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "recipes",
+            sql: include_str!("../../src/db/migrations/0002_recipes.sql"),
+            kind: MigrationKind::Up,
+        },
+    ]
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

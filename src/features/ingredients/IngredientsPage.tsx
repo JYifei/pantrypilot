@@ -62,6 +62,8 @@ export function IngredientsPage() {
       await reload();
     } else if (result.error === "in_use") {
       toast.error(t("ingredients.deleteInUse", { count: result.lotCount }));
+    } else if (result.error === "in_recipes") {
+      toast.error(t("ingredients.deleteInRecipes", { count: result.recipeCount }));
     } else {
       toast.error(t("common.error"));
     }

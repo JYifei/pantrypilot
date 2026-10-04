@@ -18,14 +18,15 @@ type BootState =
 async function boot(): Promise<{ services: AppServices; initial: InitialAppData }> {
   const database = await openDatabase();
   const services = await createAppServices(database);
-  const [settings, definitions, sources, lots] = await Promise.all([
+  const [settings, definitions, sources, lots, recipes] = await Promise.all([
     services.repositories.settings.load(),
     services.ingredients.listAll(),
     services.ingredients.listSources(),
     services.inventory.listLots(),
+    services.recipes.listAll(),
   ]);
   await i18n.changeLanguage(settings.language);
-  return { services, initial: { settings, definitions, sources, lots } };
+  return { services, initial: { settings, definitions, sources, lots, recipes } };
 }
 
 export default function App() {

@@ -13,7 +13,8 @@
     "inventory": "Inventory",
     "nutrition": "Nutrition",
     "ingredients": "Ingredients",
-    "settings": "Settings"
+    "settings": "Settings",
+    "recipes": "Recipes"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -160,7 +161,11 @@
     "openNutrition": "Open calculator",
     "emptyTitle": "Your inventory is empty",
     "emptyBody": "Start by adding something you bought, like a steak or a bag of komatsuna.",
-    "addFirst": "Add food"
+    "addFirst": "Add food",
+    "cookableTitle": "Cook now",
+    "cookableSubtitle": "Uses up food that expires soon",
+    "cookableEmpty": "Nothing can be cooked right away. Check the recipes page to see what is missing.",
+    "openRecipes": "All recipes"
   },
   "inventory": {
     "title": "Inventory",
@@ -271,7 +276,10 @@
     "date": "Use the format YYYY-MM-DD",
     "unitRequired": "Choose a unit",
     "nameRequired": "A Chinese name is required",
-    "nutritionIncomplete": "When entering nutrition, energy, protein, fat and carbohydrate are all required"
+    "nutritionIncomplete": "When entering nutrition, energy, protein, fat and carbohydrate are all required",
+    "recipeNameRequired": "Enter a recipe name",
+    "positiveInteger": "Enter a whole number greater than 0",
+    "requiredIngredient": "Add at least one non-optional ingredient"
   },
   "consume": {
     "title": "Consume: {{name}}",
@@ -391,7 +399,8 @@
     "formFrozen": "Frozen",
     "formNutrition": "Nutrition per 100 g edible portion (optional)",
     "formNutritionHint": "Leave blank if unsure. Blank means “unknown”, never zero.",
-    "formMoreNutrients": "More nutrients"
+    "formMoreNutrients": "More nutrients",
+    "deleteInRecipes": "{{count}} custom recipe(s) use this ingredient. Edit or delete them first."
   },
   "settings": {
     "title": "Settings",
@@ -438,5 +447,76 @@
     "version": "Version {{version}}",
     "demoNotice": "Built-in nutrition values are approximate demo data for development and testing. Importing official datasets is planned.",
     "licenseNotice": "An open-source license has not been selected yet."
+  },
+  "recipes": {
+    "title": "Recipes",
+    "subtitle": "See what you can cook with what you have",
+    "add": "New recipe",
+    "searchPlaceholder": "Search recipes or ingredients (中文 / English / 日本語)",
+    "filterAll": "All",
+    "filterReady": "Ready",
+    "filterAlmost": "Almost",
+    "filterCustom": "My recipes",
+    "demoNotice": "Built-in recipes are examples with typical home-cooking amounts, not tested cookbook recipes. Seasonings are not matched against inventory.",
+    "empty": "No matching recipes",
+    "readyBadge": "Ready",
+    "almostBadge": "{{count}} missing",
+    "missingBadge": "{{count}} missing",
+    "usesExpiring": "Uses up: {{names}}",
+    "minutes": "{{count}} min",
+    "servings": "Serves {{count}}",
+    "servingsLabel": "Servings",
+    "demoRecipe": "Example recipe",
+    "custom": "My recipe",
+    "ingredientsTitle": "Ingredients",
+    "seasoningsTitle": "Seasonings (not tracked)",
+    "stepsTitle": "Steps",
+    "anyCut": "Any {{species}} cut works",
+    "alternatives": "Also works: {{names}}",
+    "stockEnough": "In stock: {{have}}",
+    "stockPartial": "Only {{have}} in stock, {{need}} needed",
+    "stockMissing": "Not in stock",
+    "stockUnknown": "In stock (amount not recorded)",
+    "nutritionTitle": "Estimated nutrition per serving",
+    "nutritionNote": "Estimated from the main ingredients, excluding seasonings. Built-in nutrition values are demo data. * means some ingredients lack this value.",
+    "cook": "Cook this",
+    "duplicate": "Copy to my recipes",
+    "copySuffix": " (copy)",
+    "confirmDeleteTitle": "Delete this recipe?",
+    "confirmDeleteBody": "“{{name}}” will be deleted. Recorded inventory history is kept.",
+    "toastCreated": "Recipe added",
+    "toastUpdated": "Recipe updated",
+    "toastDeleted": "Recipe deleted",
+    "toastDuplicated": "Copied as “{{name}}” — edit it as you like",
+    "cookTitle": "Cook {{name}}",
+    "cookDescription": "For {{count}} serving(s). Confirm which lots to deduct and how much. The earliest-expiring lots are used first; enter 0 to skip a lot.",
+    "cookRemaining": "{{amount}} left",
+    "cookNeed": "Needs {{amount}}",
+    "cookNoStock": "Not in stock — will be skipped",
+    "cookConfirm": "Confirm and deduct",
+    "cookDone": "Deducted from {{count}} lot(s)",
+    "cookErrors": {
+      "recipe_not_found": "Recipe not found",
+      "nothing_to_consume": "Nothing to deduct",
+      "lot_not_found": "Lot no longer exists: {{name}}",
+      "invalid_quantity": "Invalid amount: {{name}}",
+      "exceeds_remaining": "More than what is left: {{name}}",
+      "weight_not_tracked": "This lot has no weight recorded: {{name}}",
+      "count_not_tracked": "This lot has no count recorded: {{name}}"
+    },
+    "formTitleNew": "New recipe",
+    "formTitleEdit": "Edit recipe",
+    "formName": "Name",
+    "formDescription": "Description (optional)",
+    "formServings": "Servings",
+    "formTime": "Time (minutes, optional)",
+    "formIngredients": "Ingredients",
+    "formIngredientsHint": "Enter edible grams for the servings above. List soy sauce, salt and other seasonings below; they are not matched against inventory.",
+    "formIngredient": "Ingredient",
+    "formGrams": "Amount (g)",
+    "formAddIngredient": "Add ingredient",
+    "formSeasonings": "Seasonings (comma-separated, optional)",
+    "formSteps": "Steps (one per line)",
+    "chooseIngredient": "Choose an ingredient"
   }
 }

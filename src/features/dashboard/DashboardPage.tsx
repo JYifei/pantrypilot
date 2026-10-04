@@ -1,6 +1,7 @@
 import {
   AlarmClock,
   ArrowRight,
+  ChefHat,
   Package,
   Plus,
   Refrigerator,
@@ -18,9 +19,12 @@ import { ExpirationBadge } from "@/components/ExpirationBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { localize } from "@/domain/common/localizedText";
 import { compareByExpiration, isExpiringSoon } from "@/domain/inventory/expiration";
 import { LotFormDialog } from "@/features/inventory/LotFormDialog";
 import { buildLotView } from "@/features/inventory/lotView";
+import { ReadinessBadge } from "@/features/recipes/RecipeBadges";
+import { useRecipeMatches } from "@/features/recipes/useRecipeMatches";
 import { formatNumber, formatWeight } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +57,55 @@ function StatCard({
       </div>
       <div className="tabular mt-3 text-3xl font-semibold tracking-tight">{value}</div>
       <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
+    </Card>
+  );
+}
+
+const COOKABLE_LIMIT = 3;
+
+/** Top recipes that can be cooked now (or almost), preferring soon-to-expire food. */
+function CookableCard() {
+  const { t } = useTranslation();
+  const locale = useLocale();
+  const { navigate } = useApp();
+  const matches = useRecipeMatches()
+    .filter((m) => m.readiness !== "missing")
+    .slice(0, COOKABLE_LIMIT);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ChefHat className="size-4 text-muted-foreground" />
+          {t("dashboard.cookableTitle")}
+        </CardTitle>
+        <CardDescription>{t("dashboard.cookableSubtitle")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {matches.length === 0 ? (
+          <p className="py-2 text-sm text-muted-foreground">{t("dashboard.cookableEmpty")}</p>
+        ) : (
+          <ul className="flex flex-col divide-y">
+            {matches.map((match) => (
+              <li key={match.recipe.id}>
+                <button
+                  type="button"
+                  onClick={() => navigate("recipes")}
+                  className="flex w-full items-center justify-between gap-3 py-2.5 text-left hover:opacity-80"
+                >
+                  <span className="truncate text-sm font-medium">
+                    {localize(match.recipe.name, locale)}
+                  </span>
+                  <ReadinessBadge match={match} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Button variant="ghost" className="mt-2 w-full" onClick={() => navigate("recipes")}>
+          {t("dashboard.openRecipes")}
+          <ArrowRight />
+        </Button>
+      </CardContent>
     </Card>
   );
 }
@@ -180,21 +233,24 @@ export function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-accent/70 to-card">
-              <CardHeader>
-                <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Salad className="size-5" />
-                </div>
-                <CardTitle>{t("dashboard.nutritionTitle")}</CardTitle>
-                <CardDescription>{t("dashboard.nutritionBody")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full" onClick={() => navigate("nutrition")}>
-                  {t("dashboard.openNutrition")}
-                  <ArrowRight />
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col gap-6">
+              <CookableCard />
+              <Card className="bg-gradient-to-br from-accent/70 to-card">
+                <CardHeader>
+                  <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                    <Salad className="size-5" />
+                  </div>
+                  <CardTitle>{t("dashboard.nutritionTitle")}</CardTitle>
+                  <CardDescription>{t("dashboard.nutritionBody")}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full" onClick={() => navigate("nutrition")}>
+                    {t("dashboard.openNutrition")}
+                    <ArrowRight />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       )}
