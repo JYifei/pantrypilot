@@ -121,7 +121,7 @@ V0.1 原始需求要求先不做菜谱；2026-10-04 确定 V0.2 做菜谱（手�
 - [x] 故障注入与并发测试 22 项（`src/services/reliability.integration.test.ts`）；把事务改成逐条写入后其中 10 项失败，证明测试确实能抓到非原子写入
 - [x] 0001 / 0002 迁移文件未改动（`git diff` 为空）
 - [x] 新增 CI 工作流 `.github/workflows/ci.yml`（Ubuntu：`pnpm check` + `pnpm build`；Windows：`cargo fmt --check` + `cargo test`）
-- [ ] CI 在 GitHub 上首次运行通过（尚未推送，未运行）
+- [x] CI 在 GitHub 上首次运行通过（提交 `b3037b9`，Ubuntu 与 Windows 两个任务均成功）
 - [ ] 🧪 你在桌面应用里做一次菜、导出再导入一次，确认行为正常
 - [x] 文档更正：ARCHITECTURE / README 不再宣称超出实际的原子性；新增 ADR `docs/adr/0001-desktop-transaction-boundary.md`
 
