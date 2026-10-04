@@ -1,0 +1,548 @@
+/**
+ * Built-in ingredient definitions shipped with the app.
+ *
+ * ⚠️ NUTRITION VALUES ARE DEMO DATA (dataQuality: "demo").
+ * They are rounded approximations for development and testing only — see
+ * DEMO_SOURCE_ID in ./nutritionSources.ts. Shelf-life and unit-conversion
+ * numbers are rough household estimates and are always user-overridable.
+ *
+ * IDs are stable and language-independent. Never rename an ID once released:
+ * inventory lots and backups reference it.
+ */
+import type { IngredientDefinition } from "@/domain/ingredients/types";
+import type { NutritionFacts } from "@/domain/nutrition/types";
+import { DEMO_SOURCE_ID } from "./nutritionSources";
+
+type BuiltinInput = Omit<
+  IngredientDefinition,
+  "isBuiltin" | "dataQuality" | "sourceId" | "aliases" | "tags"
+> & {
+  aliases?: string[];
+  tags?: string[];
+};
+
+function builtin(input: BuiltinInput): IngredientDefinition {
+  return {
+    aliases: [],
+    tags: [],
+    ...input,
+    sourceId: input.nutritionPer100g ? DEMO_SOURCE_ID : undefined,
+    dataQuality: "demo",
+    isBuiltin: true,
+  };
+}
+
+/** Compact constructor for demo nutrition: kcal, protein, fat, carbohydrate, extras. */
+function n(
+  kcal: number,
+  proteinG: number,
+  fatG: number,
+  carbohydrateG: number,
+  extra: Partial<NutritionFacts> = {},
+): NutritionFacts {
+  return { kcal, proteinG, fatG, carbohydrateG, ...extra };
+}
+
+const MEAT_SHELF_LIFE = { refrigeratedDays: 3, frozenDays: 30 };
+const GROUND_MEAT_SHELF_LIFE = { refrigeratedDays: 2, frozenDays: 21 };
+const FISH_SHELF_LIFE = { refrigeratedDays: 2, frozenDays: 30 };
+
+export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
+  // ── Beef ────────────────────────────────────────────────────────────────
+  builtin({
+    id: "beef_misuji_raw",
+    name: { zhCN: "牛板腱", enUS: "Beef top blade (misuji)", jaJP: "牛ミスジ" },
+    aliases: ["ミスジ", "みすじ", "misuji", "top blade", "牛肩胛"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "misuji",
+    nutritionPer100g: n(250, 17.5, 19.5, 0.3, { saturatedFatG: 7, sodiumMg: 50, ironMg: 2 }),
+    tags: ["red_meat"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_sirloin_raw",
+    name: { zhCN: "牛西冷", enUS: "Beef sirloin", jaJP: "牛サーロイン" },
+    aliases: ["サーロイン", "sirloin", "西冷", "沙朗"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "sirloin",
+    nutritionPer100g: n(310, 16.5, 27, 0.4, { saturatedFatG: 10, sodiumMg: 45, ironMg: 0.9 }),
+    tags: ["red_meat"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_rib_loin_raw",
+    name: { zhCN: "牛肋眼", enUS: "Beef rib loin", jaJP: "牛リブロース" },
+    aliases: ["リブロース", "ribeye", "rib eye", "肋眼"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "rib_loin",
+    nutritionPer100g: n(380, 14, 36, 0.2),
+    tags: ["red_meat"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_shoulder_loin_raw",
+    name: { zhCN: "牛上脑", enUS: "Beef chuck eye (shoulder loin)", jaJP: "牛肩ロース" },
+    aliases: ["肩ロース", "chuck eye", "chuck roll", "上脑"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "shoulder_loin",
+    nutritionPer100g: n(295, 16.2, 26.4, 0.2),
+    tags: ["red_meat"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_round_raw",
+    name: { zhCN: "牛后腿肉", enUS: "Beef round", jaJP: "牛もも" },
+    aliases: ["牛モモ", "round", "牛腿肉"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "round",
+    nutritionPer100g: n(196, 19.5, 13.3, 0.4),
+    tags: ["red_meat", "lean"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_tenderloin_raw",
+    name: { zhCN: "牛菲力", enUS: "Beef tenderloin", jaJP: "牛ヒレ" },
+    aliases: ["ヒレ", "ヘレ", "フィレ", "fillet", "filet", "菲力", "牛里脊"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "tenderloin",
+    nutritionPer100g: n(177, 20.8, 11.2, 0.3),
+    tags: ["red_meat", "lean"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_belly_raw",
+    name: { zhCN: "牛五花", enUS: "Beef short plate (belly)", jaJP: "牛バラ" },
+    aliases: ["バラ", "カルビ", "short plate", "brisket", "牛腩", "肥牛"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "belly",
+    nutritionPer100g: n(381, 12.8, 39.4, 0.3),
+    tags: ["red_meat"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_ground_raw",
+    name: { zhCN: "牛肉馅", enUS: "Ground beef", jaJP: "牛ひき肉" },
+    aliases: ["牛ミンチ", "minced beef", "牛绞肉"],
+    category: "meat",
+    animalSpecies: "beef",
+    anatomicalCut: "ground",
+    nutritionPer100g: n(251, 17.1, 21.1, 0.3),
+    tags: ["red_meat"],
+    defaultShelfLife: GROUND_MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "beef_unspecified_raw",
+    name: {
+      zhCN: "牛肉（部位未指定）",
+      enUS: "Beef (unspecified cut)",
+      jaJP: "牛肉（部位指定なし）",
+    },
+    aliases: ["牛肉", "beef", "こま切れ", "切り落とし"],
+    category: "meat",
+    animalSpecies: "beef",
+    nutritionPer100g: null,
+    tags: ["red_meat"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+
+  // ── Pork ────────────────────────────────────────────────────────────────
+  builtin({
+    id: "pork_belly_raw",
+    name: { zhCN: "五花肉", enUS: "Pork belly", jaJP: "豚バラ" },
+    aliases: ["豚バラ肉", "三枚肉", "pork belly", "猪五花"],
+    category: "meat",
+    animalSpecies: "pork",
+    anatomicalCut: "belly",
+    nutritionPer100g: n(366, 14.4, 35.4, 0.1, { saturatedFatG: 14.6, sodiumMg: 50, ironMg: 0.6 }),
+    tags: ["pork"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "pork_loin_raw",
+    name: { zhCN: "猪外脊（大排）", enUS: "Pork loin", jaJP: "豚ロース" },
+    aliases: ["ロース", "pork loin", "大排", "猪外脊"],
+    category: "meat",
+    animalSpecies: "pork",
+    anatomicalCut: "loin",
+    nutritionPer100g: n(248, 19.3, 19.2, 0.2),
+    tags: ["pork"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "pork_shoulder_loin_raw",
+    name: { zhCN: "猪梅花肉", enUS: "Pork shoulder loin (collar)", jaJP: "豚肩ロース" },
+    aliases: ["肩ロース", "pork collar", "梅花肉", "梅头肉"],
+    category: "meat",
+    animalSpecies: "pork",
+    anatomicalCut: "shoulder_loin",
+    nutritionPer100g: n(237, 17.1, 19.2, 0.1),
+    tags: ["pork"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "pork_tenderloin_raw",
+    name: { zhCN: "猪小里脊", enUS: "Pork tenderloin", jaJP: "豚ヒレ" },
+    aliases: ["ヒレ", "pork fillet", "里脊肉", "猪里脊"],
+    category: "meat",
+    animalSpecies: "pork",
+    anatomicalCut: "tenderloin",
+    nutritionPer100g: n(118, 22.2, 3.7, 0.3),
+    tags: ["pork", "lean"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "pork_leg_raw",
+    name: { zhCN: "猪后腿肉", enUS: "Pork leg", jaJP: "豚もも" },
+    aliases: ["豚モモ", "pork ham", "猪腿肉"],
+    category: "meat",
+    animalSpecies: "pork",
+    anatomicalCut: "leg",
+    nutritionPer100g: n(171, 20.5, 10.2, 0.2),
+    tags: ["pork", "lean"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "pork_ground_raw",
+    name: { zhCN: "猪肉馅", enUS: "Ground pork", jaJP: "豚ひき肉" },
+    aliases: ["豚ミンチ", "minced pork", "猪绞肉"],
+    category: "meat",
+    animalSpecies: "pork",
+    anatomicalCut: "ground",
+    nutritionPer100g: n(209, 17.7, 17.2, 0.1),
+    tags: ["pork"],
+    defaultShelfLife: GROUND_MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "pork_unspecified_raw",
+    name: {
+      zhCN: "猪肉（部位未指定）",
+      enUS: "Pork (unspecified cut)",
+      jaJP: "豚肉（部位指定なし）",
+    },
+    aliases: ["猪肉", "pork", "豚こま", "こま切れ", "切り落とし"],
+    category: "meat",
+    animalSpecies: "pork",
+    nutritionPer100g: null,
+    tags: ["pork"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+
+  // ── Chicken ─────────────────────────────────────────────────────────────
+  builtin({
+    id: "chicken_thigh_skin_on_raw",
+    name: { zhCN: "鸡腿肉（带皮）", enUS: "Chicken thigh, skin-on", jaJP: "鶏もも（皮付き）" },
+    aliases: ["鶏もも", "とりもも", "chicken thigh", "鸡腿"],
+    category: "meat",
+    animalSpecies: "chicken",
+    anatomicalCut: "thigh",
+    nutritionPer100g: n(190, 16.6, 14.2, 0, { saturatedFatG: 4.4 }),
+    tags: ["poultry"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "chicken_breast_skinless_raw",
+    name: { zhCN: "鸡胸肉（去皮）", enUS: "Chicken breast, skinless", jaJP: "鶏むね（皮なし）" },
+    aliases: ["鶏むね", "とりむね", "chicken breast", "鸡胸"],
+    category: "meat",
+    animalSpecies: "chicken",
+    anatomicalCut: "breast",
+    nutritionPer100g: n(105, 23.3, 1.9, 0.1),
+    tags: ["poultry", "lean"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "chicken_tender_raw",
+    name: { zhCN: "鸡小胸（鸡柳）", enUS: "Chicken tenderloin (sasami)", jaJP: "鶏ささみ" },
+    aliases: ["ささみ", "sasami", "chicken tender", "鸡柳", "鸡里脊"],
+    category: "meat",
+    animalSpecies: "chicken",
+    anatomicalCut: "tender",
+    nutritionPer100g: n(98, 23.9, 0.8, 0.1),
+    tags: ["poultry", "lean"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "chicken_wing_raw",
+    name: { zhCN: "鸡翅（翅中连翅尖）", enUS: "Chicken wing", jaJP: "鶏手羽先" },
+    aliases: ["手羽先", "chicken wing", "鸡翅", "鸡中翅"],
+    category: "meat",
+    animalSpecies: "chicken",
+    anatomicalCut: "wing",
+    defaultEdibleRatio: 0.6,
+    nutritionPer100g: n(207, 17.4, 16.2, 0),
+    tags: ["poultry"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+    defaultUnitConversions: { piece: { estimatedGrams: 55, confidence: "low" } },
+  }),
+  builtin({
+    id: "chicken_drumette_raw",
+    name: { zhCN: "鸡翅根", enUS: "Chicken drumette", jaJP: "鶏手羽元" },
+    aliases: ["手羽元", "drumette", "翅根"],
+    category: "meat",
+    animalSpecies: "chicken",
+    anatomicalCut: "drumette",
+    defaultEdibleRatio: 0.7,
+    nutritionPer100g: n(175, 18.2, 12.8, 0),
+    tags: ["poultry"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+    defaultUnitConversions: { piece: { estimatedGrams: 60, confidence: "low" } },
+  }),
+  builtin({
+    id: "chicken_ground_raw",
+    name: { zhCN: "鸡肉馅", enUS: "Ground chicken", jaJP: "鶏ひき肉" },
+    aliases: ["鶏ミンチ", "minced chicken", "鸡绞肉"],
+    category: "meat",
+    animalSpecies: "chicken",
+    anatomicalCut: "ground",
+    nutritionPer100g: n(171, 17.5, 12, 0),
+    tags: ["poultry"],
+    defaultShelfLife: GROUND_MEAT_SHELF_LIFE,
+  }),
+  builtin({
+    id: "chicken_unspecified_raw",
+    name: {
+      zhCN: "鸡肉（部位未指定）",
+      enUS: "Chicken (unspecified cut)",
+      jaJP: "鶏肉（部位指定なし）",
+    },
+    aliases: ["鸡肉", "chicken", "鶏肉"],
+    category: "meat",
+    animalSpecies: "chicken",
+    nutritionPer100g: null,
+    tags: ["poultry"],
+    defaultShelfLife: MEAT_SHELF_LIFE,
+  }),
+
+  // ── Fish ────────────────────────────────────────────────────────────────
+  builtin({
+    id: "salmon_atlantic_raw",
+    name: { zhCN: "三文鱼（大西洋鲑）", enUS: "Atlantic salmon", jaJP: "アトランティックサーモン" },
+    aliases: ["サーモン", "鮭", "salmon", "三文鱼", "鲑鱼"],
+    category: "fish",
+    nutritionPer100g: n(218, 20.1, 16.5, 0.1, { vitaminDMcg: 8 }),
+    tags: ["oily_fish"],
+    defaultShelfLife: FISH_SHELF_LIFE,
+    defaultUnitConversions: { piece: { estimatedGrams: 100, confidence: "low" } },
+  }),
+  builtin({
+    id: "mackerel_raw",
+    name: { zhCN: "鲭鱼", enUS: "Chub mackerel", jaJP: "マサバ" },
+    aliases: ["さば", "サバ", "鯖", "mackerel", "青花鱼"],
+    category: "fish",
+    defaultEdibleRatio: 0.5,
+    nutritionPer100g: n(211, 20.6, 16.8, 0.3, { vitaminDMcg: 5 }),
+    tags: ["oily_fish"],
+    defaultShelfLife: FISH_SHELF_LIFE,
+    defaultUnitConversions: { piece: { estimatedGrams: 90, confidence: "low" } },
+  }),
+
+  // ── Egg / tofu ──────────────────────────────────────────────────────────
+  builtin({
+    id: "egg_whole",
+    name: { zhCN: "鸡蛋", enUS: "Egg (whole)", jaJP: "鶏卵" },
+    aliases: ["たまご", "卵", "玉子", "egg", "蛋"],
+    category: "egg",
+    nutritionPer100g: n(142, 12.2, 10.2, 0.4, { calciumMg: 46, ironMg: 1.5, vitaminDMcg: 3.8 }),
+    tags: [],
+    defaultShelfLife: { refrigeratedDays: 14 },
+    // Edible portion of one medium egg, without shell.
+    defaultUnitConversions: { piece: { estimatedGrams: 50, confidence: "medium" } },
+  }),
+  builtin({
+    id: "tofu_momen",
+    name: { zhCN: "老豆腐（木棉）", enUS: "Firm tofu (momen)", jaJP: "木綿豆腐" },
+    aliases: ["もめん", "momen", "firm tofu", "北豆腐", "豆腐"],
+    category: "tofu",
+    nutritionPer100g: n(73, 7, 4.9, 1.5, { fiberG: 1.1, calciumMg: 93, magnesiumMg: 57 }),
+    tags: ["soy"],
+    defaultShelfLife: { refrigeratedDays: 5 },
+    defaultUnitConversions: { pack: { estimatedGrams: 300, confidence: "low" } },
+  }),
+  builtin({
+    id: "tofu_kinu",
+    name: { zhCN: "嫩豆腐（绢豆腐）", enUS: "Silken tofu (kinu)", jaJP: "絹ごし豆腐" },
+    aliases: ["きぬ", "kinugoshi", "silken tofu", "南豆腐", "豆腐"],
+    category: "tofu",
+    nutritionPer100g: n(56, 5.3, 3.5, 2, { fiberG: 0.9 }),
+    tags: ["soy"],
+    defaultShelfLife: { refrigeratedDays: 5 },
+    defaultUnitConversions: { pack: { estimatedGrams: 300, confidence: "low" } },
+  }),
+
+  // ── Grains / noodles ────────────────────────────────────────────────────
+  builtin({
+    id: "rice_white_raw",
+    name: { zhCN: "大米（生）", enUS: "White rice (uncooked)", jaJP: "精白米" },
+    aliases: ["米", "お米", "rice", "大米"],
+    category: "grain",
+    nutritionPer100g: n(342, 6.1, 0.9, 77.6, { fiberG: 0.5 }),
+    tags: ["staple"],
+  }),
+  builtin({
+    id: "rice_cooked",
+    name: { zhCN: "米饭", enUS: "Cooked white rice", jaJP: "ご飯" },
+    aliases: ["ごはん", "白米", "rice", "白饭"],
+    category: "grain",
+    nutritionPer100g: n(156, 2.5, 0.3, 37.1, { fiberG: 1.5 }),
+    tags: ["staple"],
+    defaultShelfLife: { refrigeratedDays: 2, frozenDays: 30 },
+  }),
+  builtin({
+    id: "udon_cooked",
+    name: { zhCN: "乌冬面（熟）", enUS: "Udon noodles, boiled", jaJP: "ゆでうどん" },
+    aliases: ["うどん", "udon", "乌冬"],
+    category: "noodle",
+    nutritionPer100g: n(95, 2.6, 0.4, 21.6, { fiberG: 1.3, sodiumMg: 120 }),
+    tags: ["staple"],
+    defaultShelfLife: { refrigeratedDays: 5, frozenDays: 60 },
+    defaultUnitConversions: {
+      piece: { estimatedGrams: 200, confidence: "medium" },
+      pack: { estimatedGrams: 200, confidence: "low" },
+    },
+  }),
+  builtin({
+    id: "soba_cooked",
+    name: { zhCN: "荞麦面（熟）", enUS: "Soba noodles, boiled", jaJP: "ゆでそば" },
+    aliases: ["そば", "soba", "荞麦面"],
+    category: "noodle",
+    nutritionPer100g: n(130, 4.8, 1, 26, { fiberG: 2.9 }),
+    tags: ["staple"],
+    defaultShelfLife: { refrigeratedDays: 3 },
+    defaultUnitConversions: { piece: { estimatedGrams: 170, confidence: "low" } },
+  }),
+
+  // ── Vegetables ──────────────────────────────────────────────────────────
+  builtin({
+    id: "komatsuna_raw",
+    name: { zhCN: "小松菜", enUS: "Komatsuna", jaJP: "小松菜" },
+    aliases: ["こまつな", "komatsuna", "japanese mustard spinach"],
+    category: "vegetable",
+    nutritionPer100g: n(13, 1.5, 0.2, 2.4, {
+      fiberG: 1.9,
+      calciumMg: 170,
+      ironMg: 2.8,
+      vitaminCMg: 39,
+    }),
+    tags: ["leafy_green"],
+    defaultShelfLife: { refrigeratedDays: 4, frozenDays: 30 },
+    defaultUnitConversions: {
+      bag: { estimatedGrams: 200, confidence: "low" },
+      bunch: { estimatedGrams: 250, confidence: "low" },
+    },
+  }),
+  builtin({
+    id: "spinach_raw",
+    name: { zhCN: "菠菜", enUS: "Spinach", jaJP: "ほうれん草" },
+    aliases: ["ほうれんそう", "spinach", "波菜"],
+    category: "vegetable",
+    nutritionPer100g: n(18, 2.2, 0.4, 3.1, { fiberG: 2.8, ironMg: 2, vitaminCMg: 35 }),
+    tags: ["leafy_green"],
+    defaultShelfLife: { refrigeratedDays: 3, frozenDays: 30 },
+    defaultUnitConversions: {
+      bag: { estimatedGrams: 200, confidence: "low" },
+      bunch: { estimatedGrams: 200, confidence: "low" },
+    },
+  }),
+  builtin({
+    id: "cabbage_raw",
+    name: { zhCN: "卷心菜", enUS: "Cabbage", jaJP: "キャベツ" },
+    aliases: ["きゃべつ", "cabbage", "包菜", "圆白菜"],
+    category: "vegetable",
+    defaultEdibleRatio: 0.85,
+    nutritionPer100g: n(21, 1.3, 0.2, 5.2, { fiberG: 1.8, vitaminCMg: 41 }),
+    tags: ["leafy_green"],
+    defaultShelfLife: { refrigeratedDays: 14 },
+    defaultUnitConversions: { piece: { estimatedGrams: 1200, confidence: "low" } },
+  }),
+  builtin({
+    id: "green_pepper_raw",
+    name: { zhCN: "青椒", enUS: "Green bell pepper (piman)", jaJP: "ピーマン" },
+    aliases: ["ぴーまん", "piman", "green pepper", "菜椒"],
+    category: "vegetable",
+    defaultEdibleRatio: 0.85,
+    nutritionPer100g: n(20, 0.9, 0.2, 5.1, { fiberG: 2.3, vitaminCMg: 76 }),
+    tags: [],
+    defaultShelfLife: { refrigeratedDays: 7 },
+    defaultUnitConversions: {
+      piece: { estimatedGrams: 35, confidence: "medium" },
+      bag: { estimatedGrams: 150, confidence: "low" },
+    },
+  }),
+  builtin({
+    id: "onion_raw",
+    name: { zhCN: "洋葱", enUS: "Onion", jaJP: "玉ねぎ" },
+    aliases: ["たまねぎ", "タマネギ", "onion", "圆葱"],
+    category: "vegetable",
+    defaultEdibleRatio: 0.94,
+    nutritionPer100g: n(33, 1, 0.1, 8.4, { fiberG: 1.5 }),
+    tags: ["aromatic"],
+    defaultShelfLife: { refrigeratedDays: 30 },
+    defaultUnitConversions: { piece: { estimatedGrams: 200, confidence: "medium" } },
+  }),
+  builtin({
+    id: "carrot_raw",
+    name: { zhCN: "胡萝卜", enUS: "Carrot", jaJP: "にんじん" },
+    aliases: ["人参", "ニンジン", "carrot", "红萝卜"],
+    category: "vegetable",
+    defaultEdibleRatio: 0.97,
+    nutritionPer100g: n(35, 0.7, 0.1, 8.7, { fiberG: 2.4 }),
+    tags: ["root"],
+    defaultShelfLife: { refrigeratedDays: 14 },
+    defaultUnitConversions: { piece: { estimatedGrams: 150, confidence: "medium" } },
+  }),
+
+  // ── Mushrooms ───────────────────────────────────────────────────────────
+  builtin({
+    id: "shiitake_raw",
+    name: { zhCN: "鲜香菇", enUS: "Shiitake mushroom", jaJP: "生しいたけ" },
+    aliases: ["しいたけ", "椎茸", "シイタケ", "shiitake", "香菇"],
+    category: "mushroom",
+    nutritionPer100g: n(25, 3.1, 0.3, 6.4, { fiberG: 4.9 }),
+    tags: [],
+    defaultShelfLife: { refrigeratedDays: 5, frozenDays: 30 },
+    defaultUnitConversions: {
+      piece: { estimatedGrams: 15, confidence: "low" },
+      pack: { estimatedGrams: 100, confidence: "low" },
+    },
+  }),
+  builtin({
+    id: "shimeji_raw",
+    name: { zhCN: "蟹味菇", enUS: "Shimeji mushroom", jaJP: "ぶなしめじ" },
+    aliases: ["しめじ", "シメジ", "shimeji", "真姬菇", "白玉菇"],
+    category: "mushroom",
+    nutritionPer100g: n(22, 2.7, 0.5, 4.8, { fiberG: 3 }),
+    tags: [],
+    defaultShelfLife: { refrigeratedDays: 5, frozenDays: 30 },
+    defaultUnitConversions: { pack: { estimatedGrams: 100, confidence: "medium" } },
+  }),
+  builtin({
+    id: "enoki_raw",
+    name: { zhCN: "金针菇", enUS: "Enoki mushroom", jaJP: "えのきたけ" },
+    aliases: ["えのき", "エノキ", "enoki"],
+    category: "mushroom",
+    defaultEdibleRatio: 0.85,
+    nutritionPer100g: n(34, 2.7, 0.2, 7.6, { fiberG: 3.9 }),
+    tags: [],
+    defaultShelfLife: { refrigeratedDays: 5, frozenDays: 30 },
+    defaultUnitConversions: { bag: { estimatedGrams: 100, confidence: "medium" } },
+  }),
+
+  // ── Dairy ───────────────────────────────────────────────────────────────
+  builtin({
+    id: "milk_whole",
+    name: { zhCN: "牛奶", enUS: "Whole milk", jaJP: "牛乳" },
+    aliases: ["ぎゅうにゅう", "ミルク", "milk", "鲜奶"],
+    category: "dairy",
+    nutritionPer100g: n(61, 3.3, 3.8, 4.8, { calciumMg: 110 }),
+    tags: [],
+    defaultShelfLife: { refrigeratedDays: 7 },
+    defaultUnitConversions: { ml: { estimatedGrams: 1.03, confidence: "high" } },
+  }),
+];
