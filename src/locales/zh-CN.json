@@ -502,7 +502,9 @@
       "invalid_quantity": "数量无效：{{name}}",
       "exceeds_remaining": "超过了剩余量：{{name}}",
       "weight_not_tracked": "这批库存没有记录重量：{{name}}",
-      "count_not_tracked": "这批库存没有记录数量：{{name}}"
+      "count_not_tracked": "这批库存没有记录数量：{{name}}",
+      "stale": "库存刚刚发生了变化，没有扣减任何库存。请关闭后重新打开再试。",
+      "operation_conflict": "这次做菜已经记录过了，但数量和现在填写的不同。没有再次扣减，请关闭对话框查看库存。"
     },
     "formTitleNew": "新建菜谱",
     "formTitleEdit": "编辑菜谱",

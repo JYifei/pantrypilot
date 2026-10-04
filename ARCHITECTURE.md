@@ -15,7 +15,8 @@ Services (src/services)          ← use cases, validation, transactions
 Repositories (src/repositories)  ← interfaces + SQLite implementations
         │  SqlDatabase interface
         ▼
-Database adapter (src/db)        ← Tauri SQL plugin (desktop) | sql.js (tests, browser preview)
+Database adapter (src/db)        ← Tauri SQL plugin + Rust transaction command (desktop)
+                                   | sql.js (tests, browser preview)
 
 Domain (src/domain)  — pure types and functions, used by every layer above
 ```
@@ -39,7 +40,7 @@ shadcn/ui (Radix) · Lucide · React Hook Form + Zod · i18next · Vitest · pnp
 | `src/components`   | Shared UI; `components/ui` is generated shadcn/ui                   |
 | `src/locales`      | `zh-CN.json` (reference), `en-US.json`, `ja-JP.json`                |
 | `src/lib`          | i18n setup, formatting, file save/open helpers                      |
-| `src-tauri`        | Rust shell: plugin registration, migrations, capabilities           |
+| `src-tauri`        | Rust shell: plugins, migrations, transaction command, capabilities  |
 
 ## Domain model
 
@@ -115,8 +116,9 @@ Seasonings are plain localised text and are deliberately not matched against inv
 - `planCooking` proposes per-lot deductions, earliest expiration first, converting count-only
   lots through their unit conversions.
 
-`RecipeService.cook` re-validates every proposed deduction with the inventory domain functions
-before writing any of them, so a cook either applies completely or not at all.
+`RecipeService.cook` re-reads the lots, re-validates every deduction with the inventory domain
+functions and then commits all deductions and transactions in one database transaction (see
+[Writes and transactions](#writes-and-transactions)).
 
 Built-in recipes have stable IDs and are re-seeded when `BUILTIN_RECIPES_VERSION` changes;
 built-in rows that are no longer shipped are removed. User recipes are never touched by seeding.
@@ -126,16 +128,55 @@ Built-in recipes cannot be edited directly but can be duplicated into a user rec
 
 ### Database adapters
 
-`SqlDatabase` is a minimal interface (`execute`, `select`, `?` placeholders):
+`SqlDatabase` is a small interface with `?` placeholders: `execute`, `select`,
+`transaction(statements)` and `withWritesPaused(read)`:
 
 - **Desktop:** `tauriDatabase.ts` wraps `@tauri-apps/plugin-sql`
-  (`sqlite:pantrypilot.db` in the app config dir).
+  (`sqlite:pantrypilot.db` in the app config dir) for reads and single statements, and sends
+  multi-statement batches to the `run_transaction` command in `src-tauri/src/transaction.rs`.
 - **Tests and browser preview:** `sqljsDatabase.ts` runs the same SQL on sql.js (WASM). The
   preview persists to `localStorage`.
 
-The Tauri SQL plugin uses a connection pool, so multi-statement transactions across calls are
-not reliable. Services order writes so that a failure leaves consistent data (transaction row
-first, then the lot update) and validate multi-lot operations up front.
+### Writes and transactions
+
+The plugin keeps a connection pool, and each JS call may use a different connection, so
+`BEGIN` / `COMMIT` sent as separate `execute` calls would not be a transaction. Instead:
+
+- **Batches.** `SqlDatabase.transaction` takes a list of statements and runs them in one
+  database transaction. On desktop the Rust command takes the plugin's existing pool for the same
+  database file, calls `pool.begin()`, runs every statement on that one connection and commits;
+  any error rolls the whole batch back. Statements can carry `expectRowsAffected`; a mismatch
+  rolls back and surfaces as `StaleWriteError`.
+- **Unit of work.** `Repositories.atomic(work)` runs repository calls against a recorder: reads
+  go to the database, writes are collected and committed as one batch at the end. Services
+  therefore keep using repository methods and never build SQL.
+- **Stale reads.** Reads inside `atomic` happen before the batch commits, so lot updates are
+  compare-and-set (`updateLotIfUnchanged` checks `updated_at`, remaining weight and count). If
+  another write got there first, the batch rolls back and the service re-reads and retries
+  (`retryOnStaleWrite`, three attempts). Cooking returns `stale` if the lot keeps changing.
+- **Write lock.** Each adapter serialises the app's own writes with an in-process lock.
+  `Repositories.readConsistent` holds that lock, so a backup export reads one consistent state.
+- **sql.js.** The same batch runs synchronously between `BEGIN` and `COMMIT`. The database is
+  persisted only after a commit. If persisting fails, the in-memory database is reopened from the
+  last persisted bytes and `PersistError` is thrown, so a write is never reported as saved when
+  it was not.
+
+What is atomic: adding a lot with its `add` transaction; every consume / adjust / discard with
+its lot update; a whole cook (all lot updates, all transactions and the operation record); a
+whole replacing import (deletes, inserts and settings). Built-in data seeding and settings
+saves are separate statements.
+
+### Retry-safe cooking
+
+The cook dialog creates an operation ID when it opens and sends it with every attempt.
+`applied_operations` (migration 3) stores the ID, a canonical copy of the request and the result
+in the same transaction as the deductions. A repeated request with the same ID returns the
+stored result (`replayed`) without deducting again; the same ID with a different request is
+rejected with `operation_conflict`. Operation records are local bookkeeping: they are not
+exported and are cleared by a replacing import.
+
+Services validate input at the boundary before writing: lot quantities through the Zod lot
+schema (`InvalidInputError`), consumed and cooked amounts must be finite and non-negative.
 
 ### Migrations
 
@@ -145,10 +186,11 @@ Migrations are plain SQL files in `src/db/migrations/`. The **same file** is use
 - TypeScript: imported with `?raw` and applied by a small runner (`schema_migrations` table)
   for sql.js.
 
-| Version | File                      | Adds                                                        |
-| ------- | ------------------------- | ----------------------------------------------------------- |
-| 1       | `0001_initial_schema.sql` | ingredient definitions, lots, transactions, settings        |
-| 2       | `0002_recipes.sql`        | `recipes` table, `inventory_transactions.recipe_id` + index |
+| Version | File                          | Adds                                                        |
+| ------- | ----------------------------- | ----------------------------------------------------------- |
+| 1       | `0001_initial_schema.sql`     | ingredient definitions, lots, transactions, settings        |
+| 2       | `0002_recipes.sql`            | `recipes` table, `inventory_transactions.recipe_id` + index |
+| 3       | `0003_applied_operations.sql` | `applied_operations` for retry-safe cooking                 |
 
 Released migrations are never edited.
 
@@ -166,7 +208,7 @@ Released migrations are never edited.
 ## Repository and service layer
 
 Repositories (`IngredientRepository`, `InventoryRepository`, `RecipeRepository`,
-`SettingsRepository`) map rows to domain objects and contain all SQL. Services hold use cases
+`SettingsRepository`, `OperationRepository`) map rows to domain objects and contain all SQL. Services hold use cases
 (`InventoryService.consume`, `IngredientService.deleteCustom` with "in use" / "in recipes"
 checks, `RecipeService.cook`, `BackupService.importReplacingAll`). `createAppServices(db, clock)`
 wires everything and seeds built-in data. React reaches services only through `useApp()`.
@@ -199,8 +241,8 @@ locale keys. Lint and tests guard against hard-coded text and missing keys.
 Only user-created ingredients and recipes are exported; built-ins are referenced by their stable
 IDs. On import the file is validated with Zod, migrated step by step through `BACKUP_MIGRATIONS`
 to the current version (1 → 2 adds an empty `recipes` list), checked for dangling references
-(including ingredients used by recipes and collisions with built-in recipe IDs), and then
-replaces all user data.
+(including ingredients used by recipes and collisions with built-in recipe IDs), and only then
+replaces all user data in one transaction. If any write fails, the previous data stays.
 
 ## Security
 
@@ -215,6 +257,15 @@ tested against an in-memory sql.js database running the real migrations, includi
 restart (export database bytes → reopen), a backup round trip and cooking a recipe end to end.
 Built-in recipes are checked for valid ingredient references and complete translations. Locale
 files are tested for key parity and placeholder consistency.
+
+`src/services/reliability.integration.test.ts` injects failures into individual statements of a
+batch (second lot update of a cook, transaction insert, each stage of an import), simulates
+competing writers and persist failures, and reopens the database to check what survived. These
+run on sql.js and say nothing about the desktop path on their own. The Rust command has its own
+tests in `src-tauri/src/transaction.rs` against a temporary SQLite file with a multi-connection
+pool (commit, rollback on a failing statement, rollback on a guard mismatch, competing writes).
+CI (`.github/workflows/ci.yml`) runs `pnpm check` and `pnpm build` on Ubuntu, and
+`cargo fmt --check` and `cargo test` on Windows.
 
 ## Future directions
 

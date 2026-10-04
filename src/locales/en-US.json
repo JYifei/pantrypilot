@@ -502,7 +502,9 @@
       "invalid_quantity": "Invalid amount: {{name}}",
       "exceeds_remaining": "More than what is left: {{name}}",
       "weight_not_tracked": "This lot has no weight recorded: {{name}}",
-      "count_not_tracked": "This lot has no count recorded: {{name}}"
+      "count_not_tracked": "This lot has no count recorded: {{name}}",
+      "stale": "Inventory changed just now, so nothing was deducted. Close and reopen to try again.",
+      "operation_conflict": "This cooking was already saved with different amounts. Nothing was deducted again; close the dialog and check your inventory."
     },
     "formTitleNew": "New recipe",
     "formTitleEdit": "Edit recipe",

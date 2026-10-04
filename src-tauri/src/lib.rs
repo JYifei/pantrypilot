@@ -1,5 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
+mod transaction;
+
 /// Must match `APP_CONFIG.databaseUrl` in src/config/app.ts.
 const DATABASE_URL: &str = "sqlite:pantrypilot.db";
 
@@ -20,6 +22,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0002_recipes.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "applied_operations",
+            sql: include_str!("../../src/db/migrations/0003_applied_operations.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -33,6 +41,7 @@ pub fn run() {
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .invoke_handler(tauri::generate_handler![transaction::run_transaction])
         .run(tauri::generate_context!())
         .expect("error while running PantryPilot");
 }

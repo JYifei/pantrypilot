@@ -502,7 +502,9 @@
       "invalid_quantity": "量が正しくありません：{{name}}",
       "exceeds_remaining": "残量を超えています：{{name}}",
       "weight_not_tracked": "この在庫は重量が記録されていません：{{name}}",
-      "count_not_tracked": "この在庫は個数が記録されていません：{{name}}"
+      "count_not_tracked": "この在庫は個数が記録されていません：{{name}}",
+      "stale": "在庫が直前に変更されたため、何も差し引いていません。閉じてから開き直してください。",
+      "operation_conflict": "この調理は別の分量ですでに記録されています。再度の差し引きはしていません。ダイアログを閉じて在庫を確認してください。"
     },
     "formTitleNew": "レシピを作成",
     "formTitleEdit": "レシピを編集",

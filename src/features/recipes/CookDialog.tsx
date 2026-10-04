@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { newId } from "@/domain/common/ids";
 import { localize } from "@/domain/common/localizedText";
 import { tracksWeight } from "@/domain/inventory/lotOperations";
 import {
@@ -54,6 +55,8 @@ export function CookDialog({
   const { services, reload, today, definitionsById } = useApp();
   const [amounts, setAmounts] = useState(() => initialAmounts(match));
   const [busy, setBusy] = useState(false);
+  // One ID per dialog, so retrying after an error cannot deduct twice.
+  const [operationId] = useState(newId);
 
   const lotLabel = (candidate: CandidateLot) => {
     const lot = candidate.lot;
@@ -91,7 +94,7 @@ export function CookDialog({
   async function confirm() {
     setBusy(true);
     try {
-      const result = await services.recipes.cook(match.recipe.id, allocations);
+      const result = await services.recipes.cook(match.recipe.id, allocations, operationId);
       if (!result.ok) {
         const lotName =
           "lotId" in result

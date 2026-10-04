@@ -1,4 +1,4 @@
-import type { SqlDatabase, SqlRow } from "@/db/database";
+import type { SqlDatabase, SqlRow, SqlValue } from "@/db/database";
 import type { InventoryLot, InventoryTransaction } from "@/domain/inventory/types";
 import type { InventoryRepository } from "../types";
 import {
@@ -54,6 +54,67 @@ function rowToTransaction(row: SqlRow): InventoryTransaction {
   });
 }
 
+/** Every column except `id` and `created_at`, in the order of `lotValues`. */
+const LOT_COLUMNS = [
+  "ingredient_definition_id",
+  "cut",
+  "form",
+  "original_weight_g",
+  "remaining_weight_g",
+  "count",
+  "unit",
+  "thickness_mm",
+  "fat_percent",
+  "bone_in",
+  "skin_on",
+  "processing_json",
+  "purchase_date",
+  "expiration_date",
+  "storage",
+  "opened",
+  "purchase_price",
+  "currency",
+  "brand",
+  "label_text",
+  "notes",
+  "updated_at",
+] as const;
+
+function lotValues(lot: InventoryLot): SqlValue[] {
+  return [
+    lot.ingredientDefinitionId,
+    toSqlOptional(lot.cut),
+    toSqlOptional(lot.form),
+    toSqlOptional(lot.originalWeightG),
+    toSqlOptional(lot.remainingWeightG),
+    toSqlOptional(lot.count),
+    toSqlOptional(lot.unit),
+    toSqlOptional(lot.thicknessMm),
+    toSqlOptional(lot.fatPercent),
+    toSqlBool(lot.boneIn),
+    toSqlBool(lot.skinOn),
+    toJson(lot.processing),
+    toSqlOptional(lot.purchaseDate),
+    toSqlOptional(lot.expirationDate),
+    lot.storage,
+    lot.opened ? 1 : 0,
+    toSqlOptional(lot.purchasePrice),
+    toSqlOptional(lot.currency),
+    toSqlOptional(lot.brand),
+    toSqlOptional(lot.labelText),
+    toSqlOptional(lot.notes),
+    lot.updatedAt,
+  ];
+}
+
+const UPSERT_LOT_SQL = `INSERT INTO inventory_lots (id, created_at, ${LOT_COLUMNS.join(", ")})
+  VALUES (${["?", "?", ...LOT_COLUMNS.map(() => "?")].join(", ")})
+  ON CONFLICT (id) DO UPDATE SET ${LOT_COLUMNS.map((c) => `${c} = excluded.${c}`).join(", ")}`;
+
+const GUARDED_UPDATE_LOT_SQL = `UPDATE inventory_lots
+  SET ${LOT_COLUMNS.map((c) => `${c} = ?`).join(", ")}
+  WHERE id = ? AND updated_at = ? AND remaining_weight_g IS ? AND count IS ?`;
+
 export class SqliteInventoryRepository implements InventoryRepository {
   constructor(private readonly db: SqlDatabase) {}
 
@@ -68,62 +129,20 @@ export class SqliteInventoryRepository implements InventoryRepository {
   }
 
   async saveLot(lot: InventoryLot): Promise<void> {
+    await this.db.execute(UPSERT_LOT_SQL, [lot.id, lot.createdAt, ...lotValues(lot)]);
+  }
+
+  async updateLotIfUnchanged(lot: InventoryLot, expected: InventoryLot): Promise<void> {
     await this.db.execute(
-      `INSERT INTO inventory_lots (
-         id, ingredient_definition_id, cut, form, original_weight_g, remaining_weight_g,
-         count, unit, thickness_mm, fat_percent, bone_in, skin_on, processing_json,
-         purchase_date, expiration_date, storage, opened, purchase_price, currency,
-         brand, label_text, notes, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (id) DO UPDATE SET
-         ingredient_definition_id = excluded.ingredient_definition_id,
-         cut = excluded.cut,
-         form = excluded.form,
-         original_weight_g = excluded.original_weight_g,
-         remaining_weight_g = excluded.remaining_weight_g,
-         count = excluded.count,
-         unit = excluded.unit,
-         thickness_mm = excluded.thickness_mm,
-         fat_percent = excluded.fat_percent,
-         bone_in = excluded.bone_in,
-         skin_on = excluded.skin_on,
-         processing_json = excluded.processing_json,
-         purchase_date = excluded.purchase_date,
-         expiration_date = excluded.expiration_date,
-         storage = excluded.storage,
-         opened = excluded.opened,
-         purchase_price = excluded.purchase_price,
-         currency = excluded.currency,
-         brand = excluded.brand,
-         label_text = excluded.label_text,
-         notes = excluded.notes,
-         updated_at = excluded.updated_at`,
+      GUARDED_UPDATE_LOT_SQL,
       [
-        lot.id,
-        lot.ingredientDefinitionId,
-        toSqlOptional(lot.cut),
-        toSqlOptional(lot.form),
-        toSqlOptional(lot.originalWeightG),
-        toSqlOptional(lot.remainingWeightG),
-        toSqlOptional(lot.count),
-        toSqlOptional(lot.unit),
-        toSqlOptional(lot.thicknessMm),
-        toSqlOptional(lot.fatPercent),
-        toSqlBool(lot.boneIn),
-        toSqlBool(lot.skinOn),
-        toJson(lot.processing),
-        toSqlOptional(lot.purchaseDate),
-        toSqlOptional(lot.expirationDate),
-        lot.storage,
-        lot.opened ? 1 : 0,
-        toSqlOptional(lot.purchasePrice),
-        toSqlOptional(lot.currency),
-        toSqlOptional(lot.brand),
-        toSqlOptional(lot.labelText),
-        toSqlOptional(lot.notes),
-        lot.createdAt,
-        lot.updatedAt,
+        ...lotValues(lot),
+        expected.id,
+        expected.updatedAt,
+        toSqlOptional(expected.remainingWeightG),
+        toSqlOptional(expected.count),
       ],
+      { expectRowsAffected: 1 },
     );
   }
 

@@ -1,5 +1,6 @@
 import initialSchema from "./0001_initial_schema.sql?raw";
 import recipes from "./0002_recipes.sql?raw";
+import appliedOperations from "./0003_applied_operations.sql?raw";
 
 export interface Migration {
   version: number;
@@ -17,6 +18,7 @@ export interface Migration {
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, description: "initial_schema", sql: initialSchema },
   { version: 2, description: "recipes", sql: recipes },
+  { version: 3, description: "applied_operations", sql: appliedOperations },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

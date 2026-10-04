@@ -1,6 +1,14 @@
 import type { Database, SqlJsStatic } from "sql.js";
-import type { SqlDatabase, SqlRow, SqlValue } from "./database";
+import {
+  PersistError,
+  StaleWriteError,
+  type SqlDatabase,
+  type SqlRow,
+  type SqlStatement,
+  type SqlValue,
+} from "./database";
 import { MIGRATIONS } from "./migrations";
+import { createWriteLock } from "./writeLock";
 
 /**
  * Apply pending migrations to a sql.js database, tracking applied versions in
@@ -38,26 +46,79 @@ export function applyMigrations(db: Database): number[] {
 export interface SqlJsOptions {
   /** Existing database bytes to load (e.g. from localStorage). */
   data?: Uint8Array;
-  /** Called after every write with the full database file. */
+  /**
+   * Called with the full database file after every committed write. If it
+   * throws, the in-memory database is reverted to the last persisted bytes and
+   * the write fails with PersistError.
+   */
   onPersist?: (bytes: Uint8Array) => void;
   description?: string;
 }
 
 /** Wrap a sql.js database in the SqlDatabase interface, applying migrations first. */
 export function createSqlJsDatabase(SQL: SqlJsStatic, options: SqlJsOptions = {}): SqlDatabase {
-  const db = options.data ? new SQL.Database(options.data) : new SQL.Database();
-  db.run("PRAGMA foreign_keys = ON");
+  const open = (data?: Uint8Array) => {
+    const instance = data ? new SQL.Database(data) : new SQL.Database();
+    instance.run("PRAGMA foreign_keys = ON");
+    return instance;
+  };
+  let db = open(options.data);
   applyMigrations(db);
-  options.onPersist?.(db.export());
+  let lastPersisted = options.data;
+
+  const persist = () => {
+    if (!options.onPersist) return;
+    const bytes = db.export();
+    // export() reopens the database, which resets connection pragmas.
+    db.run("PRAGMA foreign_keys = ON");
+    try {
+      options.onPersist(bytes);
+      lastPersisted = bytes;
+    } catch (error) {
+      db.close();
+      db = open(lastPersisted);
+      throw new PersistError(error);
+    }
+  };
+  persist();
+
+  /** Synchronous, so no other JavaScript can run between BEGIN and COMMIT. */
+  const runTransaction = (statements: readonly SqlStatement[]): number[] => {
+    const affected: number[] = [];
+    db.run("BEGIN");
+    try {
+      statements.forEach((statement, index) => {
+        db.run(statement.sql, statement.params);
+        const rows = db.getRowsModified();
+        const expected = statement.expectRowsAffected;
+        if (expected !== undefined && rows !== expected) throw new StaleWriteError(index, rows);
+        affected.push(rows);
+      });
+      db.run("COMMIT");
+    } catch (error) {
+      try {
+        db.run("ROLLBACK");
+      } catch {
+        // SQLite may already have rolled back on its own.
+      }
+      throw error;
+    }
+    persist();
+    return affected;
+  };
+
+  const withWriteLock = createWriteLock();
 
   return {
     kind: "sqljs",
     description: options.description ?? "in-memory (sql.js)",
-    async execute(sql: string, params: SqlValue[] = []) {
-      db.run(sql, params);
-      const rowsAffected = db.getRowsModified();
-      options.onPersist?.(db.export());
-      return { rowsAffected };
+    execute(sql: string, params: SqlValue[] = [], executeOptions = {}) {
+      return withWriteLock(async () => {
+        const [rowsAffected] = runTransaction([
+          { sql, params, expectRowsAffected: executeOptions.expectRowsAffected },
+        ]);
+        return { rowsAffected: rowsAffected ?? 0 };
+      });
     },
     async select<T extends SqlRow = SqlRow>(sql: string, params: SqlValue[] = []) {
       const statement = db.prepare(sql);
@@ -69,6 +130,13 @@ export function createSqlJsDatabase(SQL: SqlJsStatic, options: SqlJsOptions = {}
       } finally {
         statement.free();
       }
+    },
+    transaction(statements: readonly SqlStatement[]) {
+      if (statements.length === 0) return Promise.resolve([]);
+      return withWriteLock(async () => runTransaction(statements));
+    },
+    withWritesPaused(read) {
+      return withWriteLock(read);
     },
   };
 }

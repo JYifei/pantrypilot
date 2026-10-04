@@ -34,13 +34,15 @@ the Vite dev server on `localhost` during development.
   matched against current stock ("ready" / "almost": 1–2 items short), preferring recipes that
   use food expiring soon. Lines can be optional, accept alternatives (e.g. komatsuna for
   spinach) or any cut of the same species. "Cook this" deducts the used amounts from your lots,
-  earliest expiration first, after you confirm or adjust each amount.
+  earliest expiration first, after you confirm or adjust each amount. All deductions of one cook
+  are saved in a single database transaction, and retrying a cook never deducts twice.
 - **Nutrition** — values per 100 g edible portion; _unknown is never treated as zero_. Totals
   with missing values are flagged as lower bounds. A nutrition sandbox lets you combine foods and
   weights; recipes show an estimated per-serving value. Experimental 1–10 heuristic scores are
   derived on the fly and never stored.
 - **Backup** — JSON export / import (ingredients, lots, transactions, custom recipes, settings)
-  with a `schemaVersion` and migration chain.
+  with a `schemaVersion` and migration chain. Import replaces all data in one transaction; if it
+  fails, the previous data is kept.
 
 ### About the built-in data
 

@@ -20,14 +20,18 @@ export class BackupService {
     private readonly clock: Clock = systemClock,
   ) {}
 
+  /** Reads everything while writes are paused, so lots and transactions match. */
   async exportAll(): Promise<BackupFile> {
-    const [ingredients, inventoryLots, transactions, recipes, settings] = await Promise.all([
-      this.repos.ingredients.listUserCreated(),
-      this.repos.inventory.listLots(),
-      this.repos.inventory.listTransactions(),
-      this.repos.recipes.listUserCreated(),
-      this.repos.settings.load(),
-    ]);
+    const [ingredients, inventoryLots, transactions, recipes, settings] =
+      await this.repos.readConsistent(() =>
+        Promise.all([
+          this.repos.ingredients.listUserCreated(),
+          this.repos.inventory.listLots(),
+          this.repos.inventory.listTransactions(),
+          this.repos.recipes.listUserCreated(),
+          this.repos.settings.load(),
+        ]),
+      );
     return createBackup(
       { ingredients, inventoryLots, transactions, recipes, settings },
       clockNow(this.clock),
@@ -36,8 +40,9 @@ export class BackupService {
 
   /**
    * Replace all user data with the backup's contents. The backup must already
-   * be parsed and validated (see parseBackup). All reference checks run before
-   * anything is deleted.
+   * be parsed, migrated and validated (see parseBackup); reference checks run
+   * here before anything is written. Deleting the old data and writing the new
+   * data happen in one database transaction, so a failure keeps the old data.
    */
   async importReplacingAll(backup: BackupFile): Promise<ImportResult> {
     const builtinIds = new Set(
@@ -59,23 +64,26 @@ export class BackupService {
     }
     if (problems.length > 0) return { ok: false, problems };
 
-    await this.repos.inventory.deleteAll();
-    await this.repos.recipes.deleteAllUserCreated();
-    await this.repos.ingredients.deleteAllUserCreated();
+    await this.repos.atomic(async (tx) => {
+      await tx.inventory.deleteAll();
+      await tx.recipes.deleteAllUserCreated();
+      await tx.ingredients.deleteAllUserCreated();
+      await tx.operations.deleteAll();
 
-    for (const ingredient of backup.data.ingredients) {
-      await this.repos.ingredients.save({ ...ingredient, isBuiltin: false });
-    }
-    for (const recipe of backup.data.recipes) {
-      await this.repos.recipes.save({ ...recipe, isBuiltin: false });
-    }
-    for (const lot of backup.data.inventoryLots) {
-      await this.repos.inventory.saveLot(lot);
-    }
-    for (const transaction of backup.data.transactions) {
-      await this.repos.inventory.addTransaction(transaction);
-    }
-    await this.repos.settings.save(backup.data.settings);
+      for (const ingredient of backup.data.ingredients) {
+        await tx.ingredients.save({ ...ingredient, isBuiltin: false });
+      }
+      for (const recipe of backup.data.recipes) {
+        await tx.recipes.save({ ...recipe, isBuiltin: false });
+      }
+      for (const lot of backup.data.inventoryLots) {
+        await tx.inventory.saveLot(lot);
+      }
+      for (const transaction of backup.data.transactions) {
+        await tx.inventory.addTransaction(transaction);
+      }
+      await tx.settings.save(backup.data.settings);
+    });
 
     return {
       ok: true,

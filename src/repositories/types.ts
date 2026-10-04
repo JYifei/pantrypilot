@@ -25,9 +25,15 @@ export interface IngredientRepository {
 export interface InventoryRepository {
   listLots(): Promise<InventoryLot[]>;
   getLot(id: string): Promise<InventoryLot | null>;
-  /** Insert or update. */
+  /** Insert or overwrite without checks. For new lots and backup import. */
   saveLot(lot: InventoryLot): Promise<void>;
-  /** Deletes the lot and (via cascade) its transactions. */
+  /**
+   * Overwrite an existing lot only if its stored quantities and `updatedAt`
+   * still equal `expected` (the version that was read). Otherwise the write
+   * fails with StaleWriteError and, inside `atomic`, nothing is committed.
+   */
+  updateLotIfUnchanged(lot: InventoryLot, expected: InventoryLot): Promise<void>;
+  /** Deletes the lot and its transactions. */
   deleteLot(id: string): Promise<void>;
   countLotsForIngredient(ingredientDefinitionId: string): Promise<number>;
   addTransaction(transaction: InventoryTransaction): Promise<void>;
@@ -57,9 +63,39 @@ export interface SettingsRepository {
   setMeta(key: string, value: string): Promise<void>;
 }
 
-export interface Repositories {
+/** A completed retry-safe operation (idempotency record). */
+export interface AppliedOperation {
+  id: string;
+  kind: string;
+  /** Canonical JSON of the request, to detect an ID reused for a different request. */
+  requestJson: string;
+  resultJson: string;
+  createdAt: string;
+}
+
+export interface OperationRepository {
+  get(id: string): Promise<AppliedOperation | null>;
+  /** Fails if the ID already exists, so concurrent duplicates cannot both commit. */
+  record(operation: AppliedOperation): Promise<void>;
+  deleteAll(): Promise<void>;
+}
+
+export interface RepositorySet {
   ingredients: IngredientRepository;
   inventory: InventoryRepository;
   recipes: RecipeRepository;
   settings: SettingsRepository;
+  operations: OperationRepository;
+}
+
+export interface Repositories extends RepositorySet {
+  /**
+   * Run `work` with repositories whose writes are buffered, then commit all
+   * buffered writes in one database transaction: all of them or none.
+   * Reads inside `work` see committed data, not the buffered writes, so
+   * validate before calling and only write inside.
+   */
+  atomic<T>(work: (repos: RepositorySet) => Promise<T>): Promise<T>;
+  /** Run reads that must observe one consistent state (e.g. an export). */
+  readConsistent<T>(read: () => Promise<T>): Promise<T>;
 }
