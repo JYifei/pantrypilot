@@ -26,6 +26,7 @@ import { formatNumber, formatWeight } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CookDialog } from "./CookDialog";
 import { ReadinessBadge, StatusDot } from "./RecipeBadges";
+import { useRecipeText } from "./useRecipeText";
 
 const MAX_SERVINGS = 20;
 
@@ -42,6 +43,7 @@ function LineRow({
   const locale = useLocale();
   const nameOf = useIngredientName();
   const { definitionsById } = useApp();
+  const { stockText, lineNotes, lotUseLabel } = useRecipeText();
   const { ingredient } = line;
   const count =
     ingredient.count === undefined
@@ -50,16 +52,7 @@ function LineRow({
   const alternatives = (ingredient.alternatives ?? [])
     .map((a) => nameOf(definitionsById.get(a.ingredientId)))
     .join(", ");
-
-  let stock: string;
-  if (line.status === "missing") stock = t("recipes.stockMissing");
-  else if (line.amountUnknown) stock = t("recipes.stockUnknown");
-  else if (line.status === "partial")
-    stock = t("recipes.stockPartial", {
-      have: formatWeight(line.availableGrams, locale),
-      need: formatWeight(line.neededGrams, locale),
-    });
-  else stock = t("recipes.stockEnough", { have: formatWeight(line.availableGrams, locale) });
+  const notes = lineNotes(line);
 
   return (
     <li className="flex items-start gap-3 py-2.5">
@@ -94,11 +87,21 @@ function LineRow({
           className={cn(
             "text-xs",
             line.status === "enough" ? "text-success" : "text-muted-foreground",
-            line.status === "partial" && "text-warning-foreground",
+            (line.status === "partial" || line.status === "unknown") && "text-warning-foreground",
           )}
         >
-          {stock}
+          {stockText(line)}
         </div>
+        {line.uses.length > 0 && (
+          <div className="text-xs text-muted-foreground">
+            {t("recipes.usesLots", { items: line.uses.map(lotUseLabel).join(", ") })}
+          </div>
+        )}
+        {notes.map((note) => (
+          <div key={note} className="text-xs text-muted-foreground">
+            {note}
+          </div>
+        ))}
       </div>
       <div className="tabular shrink-0 text-right text-sm">
         {formatWeight(line.neededGrams, locale)}

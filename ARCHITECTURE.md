@@ -104,17 +104,32 @@ in edible grams for the base servings, and may be:
 
 Seasonings are plain localised text and are deliberately not matched against inventory.
 
-`src/domain/recipes/matching.ts` is pure:
+`src/domain/recipes/matching.ts` is pure and makes one allocation per recipe that the card,
+the detail dialog and the cook dialog all read (see
+[ADR 0002](docs/adr/0002-recipe-allocation.md)):
 
-- `matchRecipe` scales the lines to the requested servings and collects candidate lots per line
-  (expired and depleted lots excluded), giving each line a status of `enough` (with a 5 %
-  tolerance), `partial` or `missing`.
-- Readiness is `ready` when every required line is enough, `almost` when 1–2 required lines are
-  short and at least one has stock, otherwise `missing`. An urgency score rewards recipes that
-  use lots expiring today, tomorrow or within a few days; `compareRecipeMatches` sorts by
-  readiness, then urgency, then the number of short lines.
-- `planCooking` proposes per-lot deductions, earliest expiration first, converting count-only
-  lots through their unit conversions.
+- Recipe grams are edible grams. A candidate lot is measured in its own stock quantity (grams,
+  or units converted through the definition's conversions, marked as an estimate); bone-in or
+  whole lots are converted with the edible ratio, and an alternative with ratio `r` supplies
+  `1 / r` requirement grams per gram.
+- Candidates exclude expired and depleted lots, forms that cannot be prepared into the wanted
+  form (`compatibility.ts`: ground meat is never a steak, thin slices are never a block) and
+  cooked or smoked lots matched only through `anySpecies`. They are ordered by expiration
+  (undated last), then creation time, then ID, so input order does not matter.
+- One ledger of lot balances is shared by all lines. Required lines are filled first, the
+  most constrained first; a short required line gets one round of moving other lines onto
+  their own free alternatives. Optional lines only take what is left.
+- A line is `enough` (`nearly_enough` from 95 %, still showing the gap), `partial`, `missing`
+  or `unknown`. `unknown` means stock exists but its amount cannot be measured, or the shortage
+  comes from sharing and a simple bound cannot prove it is real; it is never counted as enough
+  and produces no weight deduction.
+- Readiness is `ready`, `confirm` (some line needs the user to check the amount), `almost`
+  (1–2 required lines short with some stock) or `missing`. Card reasons ("uses … expiring",
+  "still short …") come from the actual uses. An urgency score rewards recipes whose allocation
+  uses lots expiring soon; `compareRecipeMatches` sorts by readiness, urgency, short lines.
+- `planCooking` turns the uses into per-lot deductions, rounded so that the total never exceeds
+  stock (grams down to 0.1 g, pieces and slices up to whole units only when stock allows).
+  `summarizeChoice` compares the user's edited deductions with the allocation.
 
 `RecipeService.cook` re-reads the lots, re-validates every deduction with the inventory domain
 functions and then commits all deductions and transactions in one database transaction (see

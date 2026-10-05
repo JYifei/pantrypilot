@@ -15,14 +15,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { newId } from "@/domain/common/ids";
 import { localize } from "@/domain/common/localizedText";
-import { tracksWeight } from "@/domain/inventory/lotOperations";
 import {
   planCooking,
+  summarizeChoice,
   type CandidateLot,
   type CookingAllocation,
+  type LineChoice,
   type RecipeMatch,
 } from "@/domain/recipes/matching";
-import { formatNumber, formatWeight } from "@/lib/format";
+import { formatWeight } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { useRecipeText } from "./useRecipeText";
 
 const amountKey = (ingredientKey: string, lotId: string) => `${ingredientKey}|${lotId}`;
 
@@ -37,8 +40,9 @@ function initialAmounts(match: RecipeMatch): Record<string, string> {
 }
 
 /**
- * Confirm which lots a cooked recipe consumes. Defaults come from planCooking
- * (earliest expiration first); every amount can be changed or set to 0.
+ * Confirm which lots a cooked recipe consumes. Defaults come from planCooking,
+ * the same allocation the recipe's readiness is based on; every amount can be
+ * changed or set to 0, and each line shows how the choice differs from the recipe.
  */
 export function CookDialog({
   match,
@@ -57,16 +61,16 @@ export function CookDialog({
   const [busy, setBusy] = useState(false);
   // One ID per dialog, so retrying after an error cannot deduct twice.
   const [operationId] = useState(newId);
+  const { amountOf, lineNotes } = useRecipeText();
 
   const lotLabel = (candidate: CandidateLot) => {
     const lot = candidate.lot;
-    const remaining = tracksWeight(lot)
-      ? formatWeight(lot.remainingWeightG!, locale)
-      : `${formatNumber(lot.count ?? 0, locale)} ${lot.unit ? t(`unit.${lot.unit}`) : ""}`;
     return [
       nameOf(candidate.definition),
       lot.form ? t(`form.${lot.form}`) : undefined,
-      t("recipes.cookRemaining", { amount: remaining }),
+      candidate.remaining === null
+        ? t("recipes.cookNoQuantity")
+        : t("recipes.cookRemaining", { amount: amountOf(candidate, candidate.remaining) }),
     ]
       .filter(Boolean)
       .join(" · ");
@@ -76,6 +80,7 @@ export function CookDialog({
   let invalid = false;
   for (const line of match.lines) {
     for (const candidate of line.candidates) {
+      if (candidate.measure === "none") continue;
       const raw = amounts[amountKey(line.ingredient.key, candidate.lot.id)] ?? "";
       if (raw.trim() === "") continue;
       const value = Number(raw);
@@ -86,10 +91,23 @@ export function CookDialog({
       if (value === 0) continue;
       const base = { ingredientKey: line.ingredient.key, lotId: candidate.lot.id };
       allocations.push(
-        tracksWeight(candidate.lot) ? { ...base, grams: value } : { ...base, count: value },
+        candidate.measure === "weight" ? { ...base, grams: value } : { ...base, count: value },
       );
     }
   }
+  const choices = new Map(
+    summarizeChoice(match, allocations).map((choice) => [choice.line.ingredient.key, choice]),
+  );
+
+  const choiceText = (choice: LineChoice | undefined) => {
+    if (!choice || choice.line.candidates.length === 0) return null;
+    if (choice.skipped) return t("recipes.cookChoiceSkipped");
+    if (choice.grams === null) return t("recipes.cookChoiceUnknown");
+    const total = t("recipes.cookChoiceTotal", { amount: formatWeight(choice.grams, locale) });
+    return choice.lessGrams > 0
+      ? `${total} · ${t("recipes.cookChoiceLess", { amount: formatWeight(choice.lessGrams, locale) })}`
+      : total;
+  };
 
   async function confirm() {
     setBusy(true);
@@ -132,67 +150,88 @@ export function CookDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          {match.lines.map((line) => (
-            <section key={line.ingredient.key} className="rounded-lg border p-3">
-              <div className="mb-2 flex items-baseline justify-between gap-3">
-                <span className="font-medium">
-                  {nameOf(definitionsById.get(line.ingredient.ingredientId))}
-                  {line.ingredient.optional && (
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      {t("common.optional")}
-                    </span>
-                  )}
-                </span>
-                <span className="tabular text-sm text-muted-foreground">
-                  {t("recipes.cookNeed", { amount: formatWeight(line.neededGrams, locale) })}
-                </span>
-              </div>
-              {line.candidates.length === 0 ? (
-                <p className="text-xs text-muted-foreground">{t("recipes.cookNoStock")}</p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {line.candidates.map((candidate) => {
-                    const key = amountKey(line.ingredient.key, candidate.lot.id);
-                    const byWeight = tracksWeight(candidate.lot);
-                    return (
-                      <li key={candidate.lot.id} className="flex items-center gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-sm">{lotLabel(candidate)}</div>
-                          <ExpirationBadge
-                            expirationDate={candidate.lot.expirationDate}
-                            today={today}
-                            className="mt-1"
-                          />
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          <Input
-                            type="number"
-                            inputMode="decimal"
-                            min="0"
-                            step="any"
-                            aria-label={lotLabel(candidate)}
-                            className="w-24 text-right"
-                            value={amounts[key] ?? ""}
-                            placeholder="0"
-                            onChange={(e) =>
-                              setAmounts((prev) => ({ ...prev, [key]: e.target.value }))
-                            }
-                          />
-                          <span className="w-8 text-sm text-muted-foreground">
-                            {byWeight
-                              ? "g"
-                              : candidate.lot.unit
-                                ? t(`unit.${candidate.lot.unit}`)
-                                : ""}
-                          </span>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </section>
-          ))}
+          {match.lines.map((line) => {
+            const choice = choices.get(line.ingredient.key);
+            const summary = choiceText(choice);
+            return (
+              <section key={line.ingredient.key} className="rounded-lg border p-3">
+                <div className="mb-2 flex items-baseline justify-between gap-3">
+                  <span className="font-medium">
+                    {nameOf(definitionsById.get(line.ingredient.ingredientId))}
+                    {line.ingredient.optional && (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        {t("common.optional")}
+                      </span>
+                    )}
+                  </span>
+                  <span className="tabular text-sm text-muted-foreground">
+                    {t("recipes.cookNeed", { amount: formatWeight(line.neededGrams, locale) })}
+                  </span>
+                </div>
+                {lineNotes(line).map((note) => (
+                  <p key={note} className="mb-1 text-xs text-muted-foreground">
+                    {note}
+                  </p>
+                ))}
+                {line.candidates.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("recipes.cookNoStock")}</p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {line.candidates.map((candidate) => {
+                      const key = amountKey(line.ingredient.key, candidate.lot.id);
+                      const byWeight = candidate.measure === "weight";
+                      const untracked = candidate.measure === "none";
+                      return (
+                        <li key={candidate.lot.id} className="flex items-center gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm">{lotLabel(candidate)}</div>
+                            <ExpirationBadge
+                              expirationDate={candidate.lot.expirationDate}
+                              today={today}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <Input
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              step="any"
+                              aria-label={lotLabel(candidate)}
+                              className="w-24 text-right"
+                              disabled={untracked}
+                              value={untracked ? "" : (amounts[key] ?? "")}
+                              placeholder={untracked ? "–" : "0"}
+                              onChange={(e) =>
+                                setAmounts((prev) => ({ ...prev, [key]: e.target.value }))
+                              }
+                            />
+                            <span className="w-8 text-sm text-muted-foreground">
+                              {byWeight
+                                ? "g"
+                                : candidate.lot.unit
+                                  ? t(`unit.${candidate.lot.unit}`)
+                                  : ""}
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {summary && (
+                  <p
+                    className={cn(
+                      "mt-2 text-xs text-muted-foreground",
+                      (choice?.lessGrams ?? 0) > 0 && "text-warning-foreground",
+                    )}
+                  >
+                    {summary}
+                  </p>
+                )}
+              </section>
+            );
+          })}
         </div>
 
         <DialogFooter>

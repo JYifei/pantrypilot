@@ -10,20 +10,27 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { localize } from "@/domain/common/localizedText";
 import { normalizeSearchText } from "@/domain/ingredients/search";
-import { displayIngredientId, type RecipeMatch } from "@/domain/recipes/matching";
+import {
+  displayIngredientId,
+  type IngredientLineMatch,
+  type RecipeMatch,
+} from "@/domain/recipes/matching";
 import type { Recipe } from "@/domain/recipes/types";
+import { formatWeight } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReadinessBadge, StatusDot } from "./RecipeBadges";
 import { RecipeDetailDialog } from "./RecipeDetailDialog";
 import { RecipeFormDialog } from "./RecipeFormDialog";
 import { recipeSearchText, useRecipeMatches } from "./useRecipeMatches";
+import { useRecipeText } from "./useRecipeText";
 
-const FILTERS = ["all", "ready", "almost", "custom"] as const;
+const FILTERS = ["all", "ready", "confirm", "almost", "custom"] as const;
 type Filter = (typeof FILTERS)[number];
 
 const FILTER_LABEL_KEYS: Record<Filter, string> = {
   all: "recipes.filterAll",
   ready: "recipes.filterReady",
+  confirm: "recipes.filterConfirm",
   almost: "recipes.filterAlmost",
   custom: "recipes.filterCustom",
 };
@@ -32,12 +39,19 @@ function RecipeCard({ match, onOpen }: { match: RecipeMatch; onOpen: () => void 
   const { t } = useTranslation();
   const locale = useLocale();
   const nameOf = useIngredientName();
-  const { definitionsById, lots } = useApp();
+  const { definitionsById } = useApp();
+  const { lotUseLabel } = useRecipeText();
   const { recipe } = match;
-  const expiringNames = match.expiringLotIds
-    .map((id) => lots.find((l) => l.id === id))
-    .map((lot) => (lot ? nameOf(definitionsById.get(lot.ingredientDefinitionId)) : ""))
-    .filter(Boolean);
+  const lineName = (line: IngredientLineMatch) =>
+    nameOf(definitionsById.get(displayIngredientId(line)));
+  const expiringItems = [...new Set(match.expiringUses.map(({ use }) => lotUseLabel(use)))];
+  const shortItems =
+    match.readiness === "almost"
+      ? match.shortLines.map(
+          (line) => `${lineName(line)} ${formatWeight(line.shortfallGrams, locale)}`,
+        )
+      : [];
+  const unconfirmedNames = match.unconfirmedLines.map(lineName);
 
   return (
     <Card
@@ -77,17 +91,27 @@ function RecipeCard({ match, onOpen }: { match: RecipeMatch; onOpen: () => void 
             )}
           >
             <StatusDot status={line.status} />
-            {nameOf(definitionsById.get(displayIngredientId(line)))}
+            {lineName(line)}
           </span>
         ))}
       </div>
 
-      {expiringNames.length > 0 && (
+      {expiringItems.length > 0 && (
         <div className="flex items-center gap-1.5 text-xs text-warning-foreground">
           <AlarmClock className="size-3.5 shrink-0 text-warning" />
           <span className="truncate">
-            {t("recipes.usesExpiring", { names: expiringNames.join(", ") })}
+            {t("recipes.usesExpiring", { items: expiringItems.join(", ") })}
           </span>
+        </div>
+      )}
+      {unconfirmedNames.length > 0 && (
+        <div className="truncate text-xs text-muted-foreground">
+          {t("recipes.confirmItems", { names: unconfirmedNames.join(", ") })}
+        </div>
+      )}
+      {shortItems.length > 0 && (
+        <div className="truncate text-xs text-muted-foreground">
+          {t("recipes.shortItems", { items: shortItems.join(", ") })}
         </div>
       )}
     </Card>
@@ -107,6 +131,7 @@ export function RecipesPage() {
     const needle = normalizeSearchText(query);
     return matches.filter((m) => {
       if (filter === "ready" && m.readiness !== "ready") return false;
+      if (filter === "confirm" && m.readiness !== "confirm") return false;
       if (filter === "almost" && m.readiness !== "almost") return false;
       if (filter === "custom" && m.recipe.isBuiltin) return false;
       return !needle || recipeSearchText(m.recipe, definitionsById).includes(needle);
@@ -117,6 +142,7 @@ export function RecipesPage() {
     () => ({
       all: matches.length,
       ready: matches.filter((m) => m.readiness === "ready").length,
+      confirm: matches.filter((m) => m.readiness === "confirm").length,
       almost: matches.filter((m) => m.readiness === "almost").length,
       custom: matches.filter((m) => !m.recipe.isBuiltin).length,
     }),
