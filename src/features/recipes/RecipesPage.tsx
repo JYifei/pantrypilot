@@ -1,4 +1,4 @@
-import { AlarmClock, ChefHat, Clock, Plus, Search, Users } from "lucide-react";
+import { AlarmClock, ChefHat, Clock, History, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp, useIngredientName, useLocale } from "@/app/appContext";
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { ReadinessBadge, StatusDot } from "./RecipeBadges";
 import { RecipeDetailDialog } from "./RecipeDetailDialog";
 import { RecipeFormDialog } from "./RecipeFormDialog";
-import { recipeSearchText, useRecipeMatches } from "./useRecipeMatches";
+import { recipeSearchText, useCookedAgoText, useRecipeMatches } from "./useRecipeMatches";
 import { useRecipeText } from "./useRecipeText";
 
 const FILTERS = ["all", "ready", "confirm", "almost", "custom"] as const;
@@ -41,6 +41,7 @@ function RecipeCard({ match, onOpen }: { match: RecipeMatch; onOpen: () => void 
   const nameOf = useIngredientName();
   const { definitionsById } = useApp();
   const { lotUseLabel } = useRecipeText();
+  const cookedAgo = useCookedAgoText()(match.recipe.id);
   const { recipe } = match;
   const lineName = (line: IngredientLineMatch) =>
     nameOf(definitionsById.get(displayIngredientId(line)));
@@ -112,6 +113,12 @@ function RecipeCard({ match, onOpen }: { match: RecipeMatch; onOpen: () => void 
       {shortItems.length > 0 && (
         <div className="truncate text-xs text-muted-foreground">
           {t("recipes.shortItems", { items: shortItems.join(", ") })}
+        </div>
+      )}
+      {cookedAgo && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <History className="size-3.5 shrink-0" />
+          <span className="truncate">{t("recipes.repeatHint", { when: cookedAgo })}</span>
         </div>
       )}
     </Card>

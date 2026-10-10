@@ -616,6 +616,11 @@ const READINESS_ORDER: Record<RecipeReadiness, number> = {
   missing: 3,
 };
 
+/** 0 for ready, increasing as a recipe is further from cookable. */
+export function readinessRank(readiness: RecipeReadiness): number {
+  return READINESS_ORDER[readiness];
+}
+
 /** Ready recipes first, then those using soon-to-expire food, then fewest missing items. */
 export function compareRecipeMatches(a: RecipeMatch, b: RecipeMatch): number {
   return (

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, type Dispatch, type SetStateAction } from "react";
 import type { IsoDate } from "@/domain/common/dates";
 import { localize, type LocaleCode } from "@/domain/common/localizedText";
+import type { CookingSession } from "@/domain/cooking/types";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
@@ -12,6 +13,7 @@ export const PAGES = [
   "dashboard",
   "inventory",
   "recipes",
+  "history",
   "nutrition",
   "ingredients",
   "settings",
@@ -35,8 +37,10 @@ export interface AppContextValue {
   sources: NutritionSource[];
   lots: InventoryLot[];
   recipes: Recipe[];
+  /** Cooking history, newest first. */
+  sessions: CookingSession[];
   today: IsoDate;
-  /** Re-read ingredients, sources and inventory from the database. */
+  /** Re-read ingredients, sources, inventory, recipes and history from the database. */
   reload(): Promise<void>;
   page: PageId;
   navigate(page: PageId): void;

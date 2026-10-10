@@ -13,6 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { newId } from "@/domain/common/ids";
 import { localize } from "@/domain/common/localizedText";
 import {
@@ -25,6 +27,7 @@ import {
 } from "@/domain/recipes/matching";
 import { formatWeight } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { MAX_COOK_NOTE_LENGTH } from "@/services/recipeService";
 import { useRecipeText } from "./useRecipeText";
 
 const amountKey = (ingredientKey: string, lotId: string) => `${ingredientKey}|${lotId}`;
@@ -58,6 +61,7 @@ export function CookDialog({
   const nameOf = useIngredientName();
   const { services, reload, today, definitionsById } = useApp();
   const [amounts, setAmounts] = useState(() => initialAmounts(match));
+  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   // One ID per dialog, so retrying after an error cannot deduct twice.
   const [operationId] = useState(newId);
@@ -112,7 +116,10 @@ export function CookDialog({
   async function confirm() {
     setBusy(true);
     try {
-      const result = await services.recipes.cook(match.recipe.id, allocations, operationId);
+      const result = await services.recipes.cook(match.recipe.id, allocations, operationId, {
+        servings: match.servings,
+        note,
+      });
       if (!result.ok) {
         const lotName =
           "lotId" in result
@@ -232,6 +239,18 @@ export function CookDialog({
               </section>
             );
           })}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="cook-note">{t("recipes.cookNote")}</Label>
+            <Textarea
+              id="cook-note"
+              rows={2}
+              maxLength={MAX_COOK_NOTE_LENGTH}
+              placeholder={t("recipes.cookNotePlaceholder")}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">{t("recipes.cookRecordHint")}</p>
+          </div>
         </div>
 
         <DialogFooter>

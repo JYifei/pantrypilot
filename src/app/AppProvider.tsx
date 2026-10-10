@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { todayIsoDate } from "@/domain/common/dates";
+import type { CookingSession } from "@/domain/cooking/types";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
@@ -16,6 +17,7 @@ export interface InitialAppData {
   sources: NutritionSource[];
   lots: InventoryLot[];
   recipes: Recipe[];
+  sessions: CookingSession[];
 }
 
 /** Holds app-wide state loaded from the database and exposes it via AppContext. */
@@ -33,21 +35,24 @@ export function AppProvider({
   const [sources, setSources] = useState(initial.sources);
   const [lots, setLots] = useState(initial.lots);
   const [recipes, setRecipes] = useState(initial.recipes);
+  const [sessions, setSessions] = useState(initial.sessions);
   const [today, setToday] = useState(() => todayIsoDate());
   const [page, setPage] = useState<PageId>("dashboard");
   const [sandbox, setSandbox] = useState<SandboxEntry[]>([]);
 
   const reload = useCallback(async () => {
-    const [nextDefinitions, nextSources, nextLots, nextRecipes] = await Promise.all([
+    const [nextDefinitions, nextSources, nextLots, nextRecipes, nextSessions] = await Promise.all([
       services.ingredients.listAll(),
       services.ingredients.listSources(),
       services.inventory.listLots(),
       services.recipes.listAll(),
+      services.recipes.listSessions(),
     ]);
     setDefinitions(nextDefinitions);
     setSources(nextSources);
     setLots(nextLots);
     setRecipes(nextRecipes);
+    setSessions(nextSessions);
     setToday(todayIsoDate());
   }, [services]);
 
@@ -88,6 +93,7 @@ export function AppProvider({
       sources,
       lots,
       recipes,
+      sessions,
       today,
       reload,
       page,
@@ -103,6 +109,7 @@ export function AppProvider({
       sources,
       lots,
       recipes,
+      sessions,
       today,
       reload,
       page,

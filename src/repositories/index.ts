@@ -1,4 +1,5 @@
 import type { ExecuteOptions, SqlDatabase, SqlRow, SqlStatement, SqlValue } from "@/db/database";
+import { SqliteCookingSessionRepository } from "./sqlite/SqliteCookingSessionRepository";
 import { SqliteIngredientRepository } from "./sqlite/SqliteIngredientRepository";
 import { SqliteInventoryRepository } from "./sqlite/SqliteInventoryRepository";
 import { SqliteOperationRepository } from "./sqlite/SqliteOperationRepository";
@@ -15,6 +16,7 @@ function createRepositorySet(db: SqlDatabase): RepositorySet {
     recipes: new SqliteRecipeRepository(db),
     settings: new SqliteSettingsRepository(db),
     operations: new SqliteOperationRepository(db),
+    sessions: new SqliteCookingSessionRepository(db),
   };
 }
 

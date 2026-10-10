@@ -1,4 +1,4 @@
-import { Database, Download, Info, ShieldCheck, Upload } from "lucide-react";
+import { Database, Download, FlaskConical, Info, ShieldCheck, Upload } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -15,12 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { APP_CONFIG } from "@/config/app";
+import { buildDemoBackup } from "@/data/demoData";
 import { parseBackup, serializeBackup, type BackupFile } from "@/domain/backup/backup";
 import { todayIsoDate } from "@/domain/common/dates";
 import { SUPPORTED_LOCALES, type LocaleCode } from "@/domain/common/localizedText";
 import {
   CURRENCIES,
   REGIONS,
+  REPEAT_HINT_DAYS,
   THEMES,
   type CurrencyCode,
   type RegionCode,
@@ -55,6 +57,26 @@ export function SettingsPage() {
   const locale = useLocale();
   const { settings, updateSettings, services, reload } = useApp();
   const [pendingImport, setPendingImport] = useState<BackupFile | null>(null);
+  const [confirmSample, setConfirmSample] = useState(false);
+  const isPreview = services.database.kind === "sqljs";
+
+  async function loadSampleData() {
+    setConfirmSample(false);
+    try {
+      const result = await services.backup.importReplacingAll(
+        buildDemoBackup(todayIsoDate(), settings),
+      );
+      if (!result.ok) {
+        toast.error(t("common.error"), { description: result.problems.slice(0, 3).join("; ") });
+        return;
+      }
+      await reload();
+      toast.success(t("settings.sampleDataLoaded"));
+    } catch (error) {
+      console.error(error);
+      toast.error(t("common.error"), { description: String(error) });
+    }
+  }
 
   async function exportData() {
     try {
@@ -177,6 +199,27 @@ export function SettingsPage() {
                 </SelectContent>
               </Select>
             </SettingRow>
+            <SettingRow label={t("settings.repeatHint")} hint={t("settings.repeatHintHint")}>
+              <Select
+                value={String(settings.repeatHintDays)}
+                onValueChange={(v) => void updateSettings({ repeatHintDays: Number(v) })}
+              >
+                <SelectTrigger className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {REPEAT_HINT_DAYS.map((days) => (
+                    <SelectItem key={days} value={String(days)}>
+                      {days === 0
+                        ? t("settings.repeatHintOff")
+                        : days === 1
+                          ? t("settings.repeatHintToday")
+                          : t("settings.repeatHintDays", { count: days })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </SettingRow>
             <SettingRow label={t("settings.region")} hint={t("settings.regionHint")}>
               <Select
                 value={settings.region}
@@ -222,6 +265,14 @@ export function SettingsPage() {
                 {t("settings.import")}
               </Button>
             </SettingRow>
+            {isPreview && (
+              <SettingRow label={t("settings.sampleData")} hint={t("settings.sampleDataHint")}>
+                <Button variant="outline" onClick={() => setConfirmSample(true)}>
+                  <FlaskConical />
+                  {t("settings.sampleDataLoad")}
+                </Button>
+              </SettingRow>
+            )}
           </CardContent>
         </Card>
 
@@ -264,11 +315,22 @@ export function SettingsPage() {
                 lots: pendingImport.data.inventoryLots.length,
                 ingredients: pendingImport.data.ingredients.length,
                 transactions: pendingImport.data.transactions.length,
+                sessions: pendingImport.data.cookingSessions.length,
               })
             : ""
         }
         confirmLabel={t("settings.importConfirm")}
         onConfirm={confirmImport}
+      />
+
+      <ConfirmDialog
+        open={confirmSample}
+        onOpenChange={setConfirmSample}
+        destructive
+        title={t("settings.sampleDataConfirmTitle")}
+        description={t("settings.sampleDataConfirmBody")}
+        confirmLabel={t("settings.sampleDataLoad")}
+        onConfirm={loadSampleData}
       />
     </>
   );

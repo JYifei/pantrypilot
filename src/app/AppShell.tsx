@@ -1,6 +1,7 @@
 import {
   BookOpen,
   ChefHat,
+  History,
   LayoutDashboard,
   Refrigerator,
   Salad,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { HistoryPage } from "@/features/history/HistoryPage";
 import { IngredientsPage } from "@/features/ingredients/IngredientsPage";
 import { InventoryPage } from "@/features/inventory/InventoryPage";
 import { NutritionPage } from "@/features/nutrition/NutritionPage";
@@ -21,6 +23,7 @@ const NAV_ITEMS: { id: PageId; icon: LucideIcon }[] = [
   { id: "dashboard", icon: LayoutDashboard },
   { id: "inventory", icon: Refrigerator },
   { id: "recipes", icon: ChefHat },
+  { id: "history", icon: History },
   { id: "nutrition", icon: Salad },
   { id: "ingredients", icon: BookOpen },
   { id: "settings", icon: Settings },
@@ -34,6 +37,8 @@ function CurrentPage({ page }: { page: PageId }) {
       return <InventoryPage />;
     case "recipes":
       return <RecipesPage />;
+    case "history":
+      return <HistoryPage />;
     case "nutrition":
       return <NutritionPage />;
     case "ingredients":

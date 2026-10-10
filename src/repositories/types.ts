@@ -1,3 +1,4 @@
+import type { CookingSession } from "@/domain/cooking/types";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot, InventoryTransaction } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
@@ -80,12 +81,23 @@ export interface OperationRepository {
   deleteAll(): Promise<void>;
 }
 
+export interface CookingSessionRepository {
+  /** Newest first. */
+  list(): Promise<CookingSession[]>;
+  getById(id: string): Promise<CookingSession | null>;
+  /** Fails if the ID already exists. Sessions are never edited in place. */
+  insert(session: CookingSession): Promise<void>;
+  /** Remove every session. Used by backup import. */
+  deleteAll(): Promise<void>;
+}
+
 export interface RepositorySet {
   ingredients: IngredientRepository;
   inventory: InventoryRepository;
   recipes: RecipeRepository;
   settings: SettingsRepository;
   operations: OperationRepository;
+  sessions: CookingSessionRepository;
 }
 
 export interface Repositories extends RepositorySet {

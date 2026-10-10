@@ -65,7 +65,7 @@ describe("recipes (sql.js)", () => {
     expect(plan).toEqual([{ ingredientKey: "beef", lotId: lot.id, grams: 250 }]);
 
     const result = await services.recipes.cook(recipe.id, plan);
-    expect(result).toEqual({ ok: true, transactionCount: 1 });
+    expect(result).toMatchObject({ ok: true, transactionCount: 1 });
 
     const [stored] = await services.inventory.listLots();
     expect(stored?.remainingWeightG).toBe(1);

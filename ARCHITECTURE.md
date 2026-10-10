@@ -84,8 +84,8 @@ error }`: consume, adjust, discard, mark opened, change storage, freeze. Remaini
 clamped at zero and over-consumption is an error, not a silent clamp.
 
 Each operation produces an `InventoryTransaction` (`add | consume | adjust | discard`), giving an
-audit trail. Consumption from cooking carries the `recipeId`, which is the basis for a future
-meal log.
+audit trail. Consumption from cooking carries the `recipeId` and, from V0.3 on, the
+`cookingSessionId` of the cooking session it belongs to. Deleting a lot deletes its transactions.
 
 Expiration status (`expired / today / tomorrow / soon / normal / unknown`) is computed from an
 injected "today", never stored.
@@ -139,6 +139,26 @@ Built-in recipes have stable IDs and are re-seeded when `BUILTIN_RECIPES_VERSION
 built-in rows that are no longer shipped are removed. User recipes are never touched by seeding.
 Built-in recipes cannot be edited directly but can be duplicated into a user recipe.
 
+### Cooking sessions
+
+A `CookingSession` (`src/domain/cooking`) records one cook: time, local date, a weak `recipeId`,
+the recipe name snapshot, servings, an optional note and one item per (recipe line, lot) pair.
+An item copies the lot ID, ingredient ID and name, form, bone-in flag and the amount in the lot's
+own measure; for counts it also freezes the estimated grams and whether the weight was `exact`,
+`estimated` or `unknown` at cooking time. History is read only from these snapshots, so editing
+or deleting the recipe, lot or ingredient never changes it; the history page marks "recipe
+deleted" and "recipe edited since" (user recipes only). There is no nutrition snapshot yet and no
+undo. See [ADR 0003](docs/adr/0003-cooking-sessions-and-snapshots.md).
+
+`RecipeService.cook` builds the session from the lots it re-read and commits it in the same
+batch as the deductions. Consume transactions written before sessions existed keep
+`cookingSessionId` empty: `legacyCookTransactions` lists them one by one and they are never
+grouped into sessions or counted for repeat hints.
+
+`recentCooks` finds recipes with a session in the last `repeatHintDays` (setting, default 3,
+0 = off). `sortWithRepeatHints` keeps readiness first and moves those recipes after the others of
+the same readiness; cards show when they were cooked. Nothing is hidden.
+
 ## Persistence
 
 ### Database adapters
@@ -177,7 +197,8 @@ The plugin keeps a connection pool, and each JS call may use a different connect
   it was not.
 
 What is atomic: adding a lot with its `add` transaction; every consume / adjust / discard with
-its lot update; a whole cook (all lot updates, all transactions and the operation record); a
+its lot update; a whole cook (the operation record, the cooking session, all transactions and
+all lot updates); a
 whole replacing import (deletes, inserts and settings). Built-in data seeding and settings
 saves are separate statements.
 
@@ -186,7 +207,8 @@ saves are separate statements.
 The cook dialog creates an operation ID when it opens and sends it with every attempt.
 `applied_operations` (migration 3) stores the ID, a canonical copy of the request and the result
 in the same transaction as the deductions. A repeated request with the same ID returns the
-stored result (`replayed`) without deducting again; the same ID with a different request is
+stored result (`replayed`, including the session ID) without deducting again or adding a second
+session; the same ID with a different request (including servings or note) is
 rejected with `operation_conflict`. Operation records are local bookkeeping: they are not
 exported and are cleared by a replacing import.
 
@@ -201,11 +223,12 @@ Migrations are plain SQL files in `src/db/migrations/`. The **same file** is use
 - TypeScript: imported with `?raw` and applied by a small runner (`schema_migrations` table)
   for sql.js.
 
-| Version | File                          | Adds                                                        |
-| ------- | ----------------------------- | ----------------------------------------------------------- |
-| 1       | `0001_initial_schema.sql`     | ingredient definitions, lots, transactions, settings        |
-| 2       | `0002_recipes.sql`            | `recipes` table, `inventory_transactions.recipe_id` + index |
-| 3       | `0003_applied_operations.sql` | `applied_operations` for retry-safe cooking                 |
+| Version | File                          | Adds                                                            |
+| ------- | ----------------------------- | --------------------------------------------------------------- |
+| 1       | `0001_initial_schema.sql`     | ingredient definitions, lots, transactions, settings            |
+| 2       | `0002_recipes.sql`            | `recipes` table, `inventory_transactions.recipe_id` + index     |
+| 3       | `0003_applied_operations.sql` | `applied_operations` for retry-safe cooking                     |
+| 4       | `0004_cooking_sessions.sql`   | `cooking_sessions`, `inventory_transactions.cooking_session_id` |
 
 Released migrations are never edited.
 
@@ -223,7 +246,7 @@ Released migrations are never edited.
 ## Repository and service layer
 
 Repositories (`IngredientRepository`, `InventoryRepository`, `RecipeRepository`,
-`SettingsRepository`, `OperationRepository`) map rows to domain objects and contain all SQL. Services hold use cases
+`SettingsRepository`, `OperationRepository`, `CookingSessionRepository`) map rows to domain objects and contain all SQL. Services hold use cases
 (`InventoryService.consume`, `IngredientService.deleteCustom` with "in use" / "in recipes"
 checks, `RecipeService.cook`, `BackupService.importReplacingAll`). `createAppServices(db, clock)`
 wires everything and seeds built-in data. React reaches services only through `useApp()`.
@@ -240,14 +263,15 @@ locale keys. Lint and tests guard against hard-coded text and missing keys.
 ```json
 {
   "format": "pantrypilot-backup",
-  "schemaVersion": 2,
-  "exportedAt": "2026-10-04T12:00:00.000Z",
+  "schemaVersion": 3,
+  "exportedAt": "2026-10-10T12:00:00.000Z",
   "appVersion": "0.1.0",
   "data": {
     "ingredients": [],
     "inventoryLots": [],
     "transactions": [],
     "recipes": [],
+    "cookingSessions": [],
     "settings": {}
   }
 }
@@ -255,9 +279,16 @@ locale keys. Lint and tests guard against hard-coded text and missing keys.
 
 Only user-created ingredients and recipes are exported; built-ins are referenced by their stable
 IDs. On import the file is validated with Zod, migrated step by step through `BACKUP_MIGRATIONS`
-to the current version (1 → 2 adds an empty `recipes` list), checked for dangling references
-(including ingredients used by recipes and collisions with built-in recipe IDs), and only then
+to the current version (1 → 2 adds an empty `recipes` list; 2 → 3 adds an empty
+`cookingSessions` list and the default `repeatHintDays`, without creating sessions from old
+transactions), checked for dangling references (including ingredients used by recipes,
+collisions with built-in recipe IDs, duplicate session IDs and transactions linked to a missing
+session; a session's recipe and lot links are weak and may point at deleted rows), and only then
 replaces all user data in one transaction. If any write fails, the previous data stays.
+
+The browser preview (sql.js only) has a "load sample data" button in Settings that imports
+`src/data/demoData.ts` through the same path: the inventory of PROJECT_BRIEF 7.7, a few sessions
+and two pre-session transactions, dated relative to today. It is not shown in the desktop app.
 
 ## Security
 
@@ -279,12 +310,14 @@ competing writers and persist failures, and reopens the database to check what s
 run on sql.js and say nothing about the desktop path on their own. The Rust command has its own
 tests in `src-tauri/src/transaction.rs` against a temporary SQLite file with a multi-connection
 pool (commit, rollback on a failing statement, rollback on a guard mismatch, competing writes).
+`src-tauri/src/lib.rs` tests run the migration SQL compiled into the app, in order, on SQLite
+through sqlx, with a pre-migration-4 transaction that must stay unlinked.
 CI (`.github/workflows/ci.yml`) runs `pnpm check` and `pnpm build` on Ubuntu, and
 `cargo fmt --check` and `cargo test` on Windows.
 
 ## Future directions
 
-- Meal log built on the `recipeId` of cooking transactions, with repeated-dish hints.
+- Nutrition snapshot per cooking session; undo through compensating transactions.
 - Shopping list generated from the short lines of chosen recipes.
 - Optional LLM input (natural language or photos, recipe suggestions) would sit in front of the
   existing services as another input method, never as a data store, and stay off by default.

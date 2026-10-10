@@ -52,6 +52,29 @@ const data: BackupData = {
       quantityG: 100,
       createdAt: "2026-10-04T01:00:00.000Z",
       recipeId: "recipe_beef_steak",
+      cookingSessionId: "session-1",
+    },
+  ],
+  cookingSessions: [
+    {
+      id: "session-1",
+      cookedAt: "2026-10-04T01:00:00.000Z",
+      localDate: "2026-10-04",
+      recipeId: "recipe_beef_steak",
+      recipeName: { zhCN: "香煎牛排", enUS: "Beef steak" },
+      servings: 1,
+      items: [
+        {
+          ingredientKey: "beef",
+          lotId: "lot-1",
+          ingredientDefinitionId: "beef_misuji_raw",
+          ingredientName: { zhCN: "牛板腱" },
+          form: "steak",
+          grams: 100,
+          weightBasis: "exact",
+        },
+      ],
+      note: "偏咸",
     },
   ],
   recipes: [
@@ -128,15 +151,66 @@ describe("backup format", () => {
     ]);
   });
 
+  it("detects a transaction linked to a session that is not in the backup", () => {
+    const backup = createBackup({ ...data, cookingSessions: [] }, "x");
+    expect(findBackupReferenceProblems(backup, new Set(["beef_misuji_raw"]))).toEqual([
+      "transaction tx-1 → unknown cooking session session-1",
+    ]);
+  });
+
+  it("keeps sessions whose recipe or lots no longer exist", () => {
+    const backup = createBackup(
+      {
+        ...data,
+        transactions: [],
+        inventoryLots: [],
+        cookingSessions: [{ ...data.cookingSessions[0]!, recipeId: "deleted-recipe" }],
+      },
+      "x",
+    );
+    expect(findBackupReferenceProblems(backup, new Set(["beef_misuji_raw"]))).toEqual([]);
+  });
+
+  /** A backup as V0.2 wrote it: no sessions, no session links, no repeat hint setting. */
+  function v2Backup() {
+    const { repeatHintDays: _setting, ...v2Settings } = DEFAULT_SETTINGS;
+    const { cookingSessions: _sessions, ...v2Data } = data;
+    return {
+      ...createBackup(data, "x"),
+      schemaVersion: 2,
+      data: {
+        ...v2Data,
+        transactions: data.transactions.map(({ cookingSessionId: _link, ...tx }) => tx),
+        settings: { ...v2Settings, language: "ja-JP" },
+      },
+    };
+  }
+
+  it("upgrades a V0.2 (schema version 2) backup without inventing sessions", () => {
+    const result = parseBackup(JSON.stringify(v2Backup()));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.schemaVersion).toBe(CURRENT_BACKUP_SCHEMA_VERSION);
+    expect(result.backup.data.cookingSessions).toEqual([]);
+    expect(result.backup.data.transactions[0]).toMatchObject({ recipeId: "recipe_beef_steak" });
+    expect(result.backup.data.transactions[0]?.cookingSessionId).toBeUndefined();
+    expect(result.backup.data.settings).toEqual({
+      ...DEFAULT_SETTINGS,
+      language: "ja-JP",
+    });
+    expect(findBackupReferenceProblems(result.backup, new Set(["beef_misuji_raw"]))).toEqual([]);
+  });
+
   it("upgrades a V0.1 (schema version 1) backup without recipes", () => {
-    const v1 = { ...createBackup(data, "x"), schemaVersion: 1 } as Record<string, unknown>;
-    const { recipes: _dropped, ...v1Data } = data;
+    const v1 = { ...v2Backup(), schemaVersion: 1 } as Record<string, unknown>;
+    const { recipes: _dropped, ...v1Data } = v2Backup().data;
     v1.data = v1Data;
     const result = parseBackup(JSON.stringify(v1));
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.backup.schemaVersion).toBe(CURRENT_BACKUP_SCHEMA_VERSION);
       expect(result.backup.data.recipes).toEqual([]);
+      expect(result.backup.data.cookingSessions).toEqual([]);
       expect(result.backup.data.inventoryLots).toHaveLength(1);
     }
   });

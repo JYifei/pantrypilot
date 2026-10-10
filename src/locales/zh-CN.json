@@ -14,7 +14,8 @@
     "nutrition": "营养",
     "ingredients": "食材库",
     "settings": "设置",
-    "recipes": "菜谱"
+    "recipes": "菜谱",
+    "history": "做菜记录"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -431,7 +432,7 @@
     "importHint": "导入会替换当前的全部库存与自定义食材。",
     "exported": "已导出：{{path}}",
     "importConfirmTitle": "用备份替换当前数据？",
-    "importConfirmBody": "备份导出于 {{date}}，包含 {{lots}} 条库存、{{ingredients}} 个自定义食材和 {{transactions}} 条记录。当前数据将被替换且无法撤销，建议先导出一份。",
+    "importConfirmBody": "备份导出于 {{date}}，包含 {{lots}} 条库存、{{ingredients}} 个自定义食材、{{transactions}} 条库存流水和 {{sessions}} 条做菜记录。当前数据将被替换且无法撤销，建议先导出一份。",
     "importConfirm": "替换并导入",
     "importDone": "导入完成",
     "importErrors": {
@@ -446,7 +447,18 @@
     "about": "关于",
     "version": "版本 {{version}}",
     "demoNotice": "内置营养数据为演示用近似值，仅用于开发与测试，未来将支持导入官方数据集。",
-    "licenseNotice": "开源许可证尚未选定。"
+    "licenseNotice": "开源许可证尚未选定。",
+    "repeatHint": "重复提示",
+    "repeatHintHint": "最近做过的菜，在推荐里排到同等条件的菜后面，并标出几天前做过。只影响排序，不会隐藏菜谱。",
+    "repeatHintOff": "关闭",
+    "repeatHintToday": "仅今天",
+    "repeatHintDays": "最近 {{count}} 天",
+    "sampleData": "演示数据",
+    "sampleDataHint": "仅浏览器预览可用：载入一组示例库存、做菜记录和早期扣减记录，日期以今天为准。",
+    "sampleDataLoad": "载入演示数据",
+    "sampleDataConfirmTitle": "用演示数据替换当前数据？",
+    "sampleDataConfirmBody": "预览中的库存、自定义食材、自定义菜谱和做菜记录都会被替换，无法撤销。设置保持不变。",
+    "sampleDataLoaded": "已载入演示数据"
   },
   "recipes": {
     "title": "菜谱",
@@ -504,7 +516,8 @@
       "weight_not_tracked": "这批库存没有记录重量：{{name}}",
       "count_not_tracked": "这批库存没有记录数量：{{name}}",
       "stale": "库存刚刚发生了变化，没有扣减任何库存。请关闭后重新打开再试。",
-      "operation_conflict": "这次做菜已经记录过了，但数量和现在填写的不同。没有再次扣减，请关闭对话框查看库存。"
+      "operation_conflict": "这次做菜已经记录过了，但数量和现在填写的不同。没有再次扣减，请关闭对话框查看库存。",
+      "invalid_servings": "份数无效"
     },
     "formTitleNew": "新建菜谱",
     "formTitleEdit": "编辑菜谱",
@@ -540,6 +553,32 @@
     "cookChoiceSkipped": "这样用料将跳过，不扣减",
     "cookChoiceUnknown": "部分数量无法换算成克，按填写的数量扣减",
     "cookChoiceTotal": "合计约 {{amount}}",
-    "cookChoiceLess": "比菜谱少 {{amount}}"
+    "cookChoiceLess": "比菜谱少 {{amount}}",
+    "cookedToday": "今天做过",
+    "cookedYesterday": "昨天做过",
+    "cookedDaysAgo": "{{count}} 天前做过",
+    "repeatHint": "{{when}}，同等条件下排在后面",
+    "cookNote": "备注（可选）",
+    "cookNotePlaceholder": "例如：盐少放了一点",
+    "cookRecordHint": "确认后会同时保存一条做菜记录：菜名、份数、用量和备注。"
+  },
+  "history": {
+    "title": "做菜记录",
+    "description": "每次确认做菜都会留下一条记录：当时的菜名、份数、用了哪些库存和备注。之后修改或删除菜谱、库存，这些记录不会改变。",
+    "empty": "还没有做菜记录",
+    "emptyBody": "在菜谱中确认做菜并扣减库存后，记录会出现在这里。",
+    "recentTitle": "最近 {{count}} 天",
+    "recentEmpty": "这段时间没有做菜记录。",
+    "olderTitle": "更早",
+    "today": "今天",
+    "yesterday": "昨天",
+    "recipeDeleted": "菜谱已删除",
+    "recipeChanged": "菜谱之后被修改过",
+    "boneInWeight": "（带骨重量）",
+    "weightUnknown": "重量未知",
+    "approxWeight": "约 {{amount}}",
+    "lotDeleted": "库存已删除",
+    "legacyTitle": "早期扣减记录",
+    "legacyExplanation": "这些是做菜记录功能上线前的库存扣减。当时只保存了扣减数量和菜谱 ID，没有保存份数、菜名快照和备注，也无法判断哪几条属于同一次做菜，所以这里逐条显示，不合并成做菜记录，也不参与重复提示。菜名显示的是菜谱现在的名称。删除库存时，它的扣减记录也会一起删除。"
   }
 }

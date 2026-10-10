@@ -14,7 +14,8 @@
     "nutrition": "栄養",
     "ingredients": "食材ライブラリ",
     "settings": "設定",
-    "recipes": "レシピ"
+    "recipes": "レシピ",
+    "history": "料理記録"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -431,7 +432,7 @@
     "importHint": "読み込むと現在の在庫とカスタム食材はすべて置き換えられます。",
     "exported": "書き出しました：{{path}}",
     "importConfirmTitle": "このバックアップで置き換えますか？",
-    "importConfirmBody": "{{date}} のバックアップ（在庫 {{lots}} 件、カスタム食材 {{ingredients}} 件、履歴 {{transactions}} 件）。現在のデータは置き換えられ、元に戻せません。先に書き出しておくことをおすすめします。",
+    "importConfirmBody": "{{date}} のバックアップ（在庫 {{lots}} 件、カスタム食材 {{ingredients}} 件、在庫履歴 {{transactions}} 件、料理記録 {{sessions}} 件）。現在のデータは置き換えられ、元に戻せません。先に書き出しておくことをおすすめします。",
     "importConfirm": "置き換えて読み込む",
     "importDone": "読み込みが完了しました",
     "importErrors": {
@@ -446,7 +447,18 @@
     "about": "このアプリについて",
     "version": "バージョン {{version}}",
     "demoNotice": "内蔵の栄養データは開発・テスト用の概算値です。公式データセットの読み込みに対応予定です。",
-    "licenseNotice": "オープンソースライセンスはまだ決まっていません。"
+    "licenseNotice": "オープンソースライセンスはまだ決まっていません。",
+    "repeatHint": "重複ヒント",
+    "repeatHintHint": "最近作った料理は同じ条件の中で後ろに並び、何日前に作ったかを表示します。並び順だけが変わり、非表示にはなりません。",
+    "repeatHintOff": "オフ",
+    "repeatHintToday": "今日のみ",
+    "repeatHintDays": "直近 {{count}} 日",
+    "sampleData": "サンプルデータ",
+    "sampleDataHint": "ブラウザプレビュー専用：サンプルの在庫・料理記録・以前の差し引き記録を、今日の日付を基準に読み込みます。",
+    "sampleDataLoad": "サンプルを読み込む",
+    "sampleDataConfirmTitle": "現在のデータをサンプルで置き換えますか？",
+    "sampleDataConfirmBody": "このプレビューの在庫・カスタム食材・カスタムレシピ・料理記録が置き換えられ、元に戻せません。設定はそのままです。",
+    "sampleDataLoaded": "サンプルデータを読み込みました"
   },
   "recipes": {
     "title": "レシピ",
@@ -504,7 +516,8 @@
       "weight_not_tracked": "この在庫は重量が記録されていません：{{name}}",
       "count_not_tracked": "この在庫は個数が記録されていません：{{name}}",
       "stale": "在庫が直前に変更されたため、何も差し引いていません。閉じてから開き直してください。",
-      "operation_conflict": "この調理は別の分量ですでに記録されています。再度の差し引きはしていません。ダイアログを閉じて在庫を確認してください。"
+      "operation_conflict": "この調理は別の分量ですでに記録されています。再度の差し引きはしていません。ダイアログを閉じて在庫を確認してください。",
+      "invalid_servings": "人数が正しくありません"
     },
     "formTitleNew": "レシピを作成",
     "formTitleEdit": "レシピを編集",
@@ -540,6 +553,32 @@
     "cookChoiceSkipped": "この材料は使わず、差し引きません",
     "cookChoiceUnknown": "一部の量はグラムに換算できません。入力した量で差し引きます",
     "cookChoiceTotal": "合計 約 {{amount}}",
-    "cookChoiceLess": "レシピより {{amount}} 少ない"
+    "cookChoiceLess": "レシピより {{amount}} 少ない",
+    "cookedToday": "今日作った",
+    "cookedYesterday": "昨日作った",
+    "cookedDaysAgo": "{{count}} 日前に作った",
+    "repeatHint": "{{when}}・同じ条件なら後ろに表示",
+    "cookNote": "メモ（任意）",
+    "cookNotePlaceholder": "例：塩を控えめに",
+    "cookRecordHint": "確定すると、料理名・人数・使用量・メモを料理記録にも保存します。"
+  },
+  "history": {
+    "title": "料理記録",
+    "description": "料理を確定するたびに、その時点の料理名・人数・使った在庫・メモが記録されます。後でレシピや在庫を編集・削除しても記録は変わりません。",
+    "empty": "料理記録はまだありません",
+    "emptyBody": "レシピで料理を確定して在庫を差し引くと、ここに記録されます。",
+    "recentTitle": "直近 {{count}} 日",
+    "recentEmpty": "この期間の記録はありません。",
+    "olderTitle": "それ以前",
+    "today": "今日",
+    "yesterday": "昨日",
+    "recipeDeleted": "レシピ削除済み",
+    "recipeChanged": "その後レシピを編集",
+    "boneInWeight": "（骨付き重量）",
+    "weightUnknown": "重量不明",
+    "approxWeight": "約 {{amount}}",
+    "lotDeleted": "在庫削除済み",
+    "legacyTitle": "以前の差し引き記録",
+    "legacyExplanation": "料理記録機能より前に記録された在庫の差し引きです。当時は数量とレシピ ID しか保存しておらず、人数・料理名・メモはなく、どの行が同じ食事のものかも分かりません。そのため 1 行ずつ表示し、料理記録にはまとめず、重複ヒントにも使いません。料理名は現在のレシピ名です。在庫を削除すると、その差し引き記録も一緒に削除されます。"
   }
 }

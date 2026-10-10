@@ -102,6 +102,10 @@ async function snapshot(services: Awaited<ReturnType<typeof createAppServices>>)
   };
 }
 
+async function sessionCount(services: Awaited<ReturnType<typeof createAppServices>>) {
+  return (await services.recipes.listSessions()).length;
+}
+
 describe("atomic writes", () => {
   it("rolls back every deduction of a cook when the second lot update fails", async () => {
     const { control, services } = await setup();
@@ -117,14 +121,30 @@ describe("atomic writes", () => {
     await expect(services.recipes.cook(RECIPE_ID, allocations, "op-1")).rejects.toThrow();
     expect(await snapshot(services)).toEqual(before);
     expect(await services.repositories.operations.get("op-1")).toBeNull();
+    expect(await sessionCount(services)).toBe(0);
 
     // The failed attempt left nothing behind, so retrying the same operation applies it once.
     control.failWhen(null);
-    expect(await services.recipes.cook(RECIPE_ID, allocations, "op-1")).toEqual({
+    expect(await services.recipes.cook(RECIPE_ID, allocations, "op-1")).toMatchObject({
       ok: true,
       transactionCount: 2,
     });
     expect((await snapshot(services)).remaining).toEqual([90, 70]);
+    expect(await sessionCount(services)).toBe(1);
+  });
+
+  it("writes no deduction when saving the cooking session fails", async () => {
+    const { control, services } = await setup();
+    const lot = await services.inventory.addLot(onion(100));
+    const before = await snapshot(services);
+
+    control.failWhen(nth(/INSERT INTO cooking_sessions/, 1));
+    await expect(
+      services.recipes.cook(RECIPE_ID, [{ ingredientKey: "x", lotId: lot.id, grams: 30 }], "op-1"),
+    ).rejects.toThrow();
+    expect(await snapshot(services)).toEqual(before);
+    expect(await sessionCount(services)).toBe(0);
+    expect(await services.repositories.operations.get("op-1")).toBeNull();
   });
 
   it("leaves no orphan transaction when the lot update after it fails", async () => {
@@ -162,6 +182,7 @@ describe("atomic writes", () => {
         theme: "dark",
         currency: "JPY",
         region: "JP",
+        repeatHintDays: 3,
       });
 
       const source = await setup();
@@ -198,18 +219,38 @@ describe("retry-safe cooking", () => {
     const lot = await services.inventory.addLot(onion(100));
     const allocations = [{ ingredientKey: "x", lotId: lot.id, grams: 30 }];
 
+    const first = await services.recipes.cook(RECIPE_ID, allocations, "op-1");
+    expect(first).toMatchObject({ ok: true, transactionCount: 1 });
+    const sessionId = first.ok ? first.sessionId : undefined;
+    expect(sessionId).toBeTruthy();
     expect(await services.recipes.cook(RECIPE_ID, allocations, "op-1")).toEqual({
       ok: true,
       transactionCount: 1,
-    });
-    expect(await services.recipes.cook(RECIPE_ID, allocations, "op-1")).toEqual({
-      ok: true,
-      transactionCount: 1,
+      sessionId,
       replayed: true,
     });
     expect(await snapshot(services)).toEqual({
       remaining: [70],
       transactions: ["add:100:", `consume:30:${RECIPE_ID}`],
+    });
+    expect(await sessionCount(services)).toBe(1);
+  });
+
+  it("replays an operation recorded before cooking sessions existed", async () => {
+    const { services } = await setup();
+    const lot = await services.inventory.addLot(onion(100));
+    const allocations = [{ ingredientKey: "x", lotId: lot.id, grams: 30 }];
+    await services.recipes.cook(RECIPE_ID, allocations, "op-1");
+    const stored = await services.repositories.operations.get("op-1");
+    await services.repositories.operations.deleteAll();
+    await services.repositories.operations.record({
+      ...stored!,
+      resultJson: JSON.stringify({ transactionCount: 1 }),
+    });
+    expect(await services.recipes.cook(RECIPE_ID, allocations, "op-1")).toEqual({
+      ok: true,
+      transactionCount: 1,
+      replayed: true,
     });
   });
 
@@ -243,6 +284,7 @@ describe("retry-safe cooking", () => {
     expect(results.every((r) => r.ok)).toBe(true);
     expect(results.filter((r) => r.ok && r.replayed)).toHaveLength(1);
     expect((await snapshot(services)).remaining).toEqual([70]);
+    expect(await sessionCount(services)).toBe(1);
   });
 });
 
@@ -255,7 +297,8 @@ describe("concurrent changes", () => {
     const result = await services.recipes.cook(RECIPE_ID, [
       { ingredientKey: "x", lotId: lot.id, grams: 50 },
     ]);
-    expect(result).toEqual({ ok: true, transactionCount: 1 });
+    expect(result).toMatchObject({ ok: true, transactionCount: 1 });
+    expect(await sessionCount(services)).toBe(1);
     expect(await snapshot(services)).toEqual({
       remaining: [40],
       transactions: ["add:100:", "consume:10:", `consume:50:${RECIPE_ID}`],
@@ -305,6 +348,7 @@ describe("concurrent changes", () => {
     const { transactions } = await snapshot(services);
     expect(transactions.filter((t) => t.endsWith(RECIPE_ID))).toHaveLength(0);
     expect(await services.repositories.operations.get("op-1")).toBeNull();
+    expect(await sessionCount(services)).toBe(0);
   });
 
   it("exports a consistent snapshot while a write is in flight", async () => {
@@ -383,7 +427,9 @@ describe("reopening the database file", () => {
     const { services, reopen } = await persisted();
     const lot = await services.inventory.addLot(onion(100));
     await services.recipes.cook(RECIPE_ID, [{ ingredientKey: "x", lotId: lot.id, grams: 30 }]);
-    expect((await snapshot(await reopen())).remaining).toEqual([70]);
+    const reopened = await reopen();
+    expect((await snapshot(reopened)).remaining).toEqual([70]);
+    expect(await sessionCount(reopened)).toBe(1);
   });
 
   it("finds nothing of a failed cook after reopening", async () => {
@@ -399,6 +445,7 @@ describe("reopening the database file", () => {
     ).rejects.toThrow();
     expect(await snapshot(await reopen())).toEqual(await snapshot(services));
     expect((await snapshot(await reopen())).remaining).toEqual([100, 100]);
+    expect(await sessionCount(await reopen())).toBe(0);
   });
 
   it("reports a failed save instead of success and reverts the in-memory change", async () => {

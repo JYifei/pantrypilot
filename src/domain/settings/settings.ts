@@ -15,11 +15,17 @@ export type CurrencyCode = (typeof CURRENCIES)[number];
 export const REGIONS = ["JP", "CN", "TW", "HK", "KR", "US", "EU", "OTHER"] as const;
 export type RegionCode = (typeof REGIONS)[number];
 
+/** Choices for the repeat hint window in days; 0 turns it off. */
+export const REPEAT_HINT_DAYS = [0, 1, 2, 3, 5, 7] as const;
+export const MAX_REPEAT_HINT_DAYS = 14;
+
 export interface AppSettings {
   language: LocaleCode;
   theme: ThemePreference;
   currency: CurrencyCode;
   region: RegionCode;
+  /** Recipes cooked within this many days are listed after the others. 0 = off. */
+  repeatHintDays: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -27,6 +33,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: "system",
   currency: "JPY",
   region: "JP",
+  repeatHintDays: 3,
 };
 
 export const appSettingsSchema = z.object({
@@ -34,6 +41,7 @@ export const appSettingsSchema = z.object({
   theme: z.enum(THEMES),
   currency: z.enum(CURRENCIES),
   region: z.enum(REGIONS),
+  repeatHintDays: z.number().int().min(0).max(MAX_REPEAT_HINT_DAYS),
 });
 
 /**

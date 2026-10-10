@@ -14,7 +14,8 @@
     "nutrition": "Nutrition",
     "ingredients": "Ingredients",
     "settings": "Settings",
-    "recipes": "Recipes"
+    "recipes": "Recipes",
+    "history": "Cooking log"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -431,7 +432,7 @@
     "importHint": "Importing replaces all current inventory and custom ingredients.",
     "exported": "Exported: {{path}}",
     "importConfirmTitle": "Replace current data with this backup?",
-    "importConfirmBody": "Backup from {{date}} with {{lots}} inventory items, {{ingredients}} custom ingredients and {{transactions}} history entries. Current data will be replaced and this cannot be undone — consider exporting first.",
+    "importConfirmBody": "Backup from {{date}} with {{lots}} inventory items, {{ingredients}} custom ingredients, {{transactions}} inventory changes and {{sessions}} cooking records. Current data will be replaced and this cannot be undone — consider exporting first.",
     "importConfirm": "Replace and import",
     "importDone": "Import complete",
     "importErrors": {
@@ -446,7 +447,18 @@
     "about": "About",
     "version": "Version {{version}}",
     "demoNotice": "Built-in nutrition values are approximate demo data for development and testing. Importing official datasets is planned.",
-    "licenseNotice": "An open-source license has not been selected yet."
+    "licenseNotice": "An open-source license has not been selected yet.",
+    "repeatHint": "Repeat hint",
+    "repeatHintHint": "Recipes cooked recently are listed after similar options and show when you last made them. Only the order changes; nothing is hidden.",
+    "repeatHintOff": "Off",
+    "repeatHintToday": "Today only",
+    "repeatHintDays": "Last {{count}} days",
+    "sampleData": "Sample data",
+    "sampleDataHint": "Browser preview only: loads sample inventory, cooking records and earlier deductions, dated relative to today.",
+    "sampleDataLoad": "Load sample data",
+    "sampleDataConfirmTitle": "Replace current data with sample data?",
+    "sampleDataConfirmBody": "Inventory, custom ingredients, custom recipes and cooking records in this preview will be replaced. This cannot be undone. Settings stay as they are.",
+    "sampleDataLoaded": "Sample data loaded"
   },
   "recipes": {
     "title": "Recipes",
@@ -504,7 +516,8 @@
       "weight_not_tracked": "This lot has no weight recorded: {{name}}",
       "count_not_tracked": "This lot has no count recorded: {{name}}",
       "stale": "Inventory changed just now, so nothing was deducted. Close and reopen to try again.",
-      "operation_conflict": "This cooking was already saved with different amounts. Nothing was deducted again; close the dialog and check your inventory."
+      "operation_conflict": "This cooking was already saved with different amounts. Nothing was deducted again; close the dialog and check your inventory.",
+      "invalid_servings": "Invalid number of servings"
     },
     "formTitleNew": "New recipe",
     "formTitleEdit": "Edit recipe",
@@ -540,6 +553,32 @@
     "cookChoiceSkipped": "Skipped, nothing deducted",
     "cookChoiceUnknown": "Some amounts cannot be converted to grams; the entered amounts are deducted",
     "cookChoiceTotal": "About {{amount}} in total",
-    "cookChoiceLess": "{{amount}} less than the recipe"
+    "cookChoiceLess": "{{amount}} less than the recipe",
+    "cookedToday": "Cooked today",
+    "cookedYesterday": "Cooked yesterday",
+    "cookedDaysAgo": "Cooked {{count}} days ago",
+    "repeatHint": "{{when}}, listed after similar options",
+    "cookNote": "Note (optional)",
+    "cookNotePlaceholder": "e.g. used less salt",
+    "cookRecordHint": "Confirming also saves a cooking record with the name, servings, amounts and note."
+  },
+  "history": {
+    "title": "Cooking log",
+    "description": "Each confirmed cook leaves a record of the recipe name, servings, what it took from inventory and your note, as they were at the time. Editing or deleting recipes or inventory later does not change it.",
+    "empty": "No cooking records yet",
+    "emptyBody": "When you cook a recipe and confirm the deductions, the record appears here.",
+    "recentTitle": "Last {{count}} days",
+    "recentEmpty": "Nothing cooked in this period.",
+    "olderTitle": "Earlier",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "recipeDeleted": "Recipe deleted",
+    "recipeChanged": "Recipe edited since",
+    "boneInWeight": "(with bone)",
+    "weightUnknown": "weight unknown",
+    "approxWeight": "≈ {{amount}}",
+    "lotDeleted": "Item deleted",
+    "legacyTitle": "Earlier deductions",
+    "legacyExplanation": "These deductions were recorded before cooking records existed. Only the amount and the recipe ID were saved, with no servings, name snapshot or note, and there is no way to tell which rows belonged to the same meal. So they are listed one by one, are not turned into cooking records and do not count for repeat hints. Recipe names show the recipe as it is now. Deleting an inventory item also deletes its deduction rows."
   }
 }

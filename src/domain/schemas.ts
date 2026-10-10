@@ -112,6 +112,32 @@ export const inventoryTransactionSchema = z.object({
   createdAt: isoDateTime,
   notes: z.string().optional(),
   recipeId: z.string().min(1).optional(),
+  cookingSessionId: z.string().min(1).optional(),
+});
+
+const cookingSessionItemSchema = z.object({
+  ingredientKey: z.string().min(1),
+  lotId: z.string().min(1),
+  ingredientDefinitionId: z.string().min(1),
+  ingredientName: localizedTextSchema,
+  form: z.enum(PRODUCT_FORMS).optional(),
+  boneIn: z.boolean().optional(),
+  grams: nonNegative.optional(),
+  count: nonNegative.optional(),
+  unit: z.enum(INVENTORY_UNITS).optional(),
+  estimatedGrams: nonNegative.optional(),
+  weightBasis: z.enum(["exact", "estimated", "unknown"]),
+});
+
+export const cookingSessionSchema = z.object({
+  id: z.string().min(1),
+  cookedAt: isoDateTime,
+  localDate: isoDate,
+  recipeId: z.string().min(1).optional(),
+  recipeName: localizedTextSchema,
+  servings: z.number().int().positive(),
+  items: z.array(cookingSessionItemSchema),
+  note: z.string().optional(),
 });
 
 export const recipeSchema = z.object({

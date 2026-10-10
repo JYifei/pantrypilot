@@ -1,17 +1,45 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useApp } from "@/app/appContext";
 import { allLocalizedValues } from "@/domain/common/localizedText";
+import { recentCooks, sortWithRepeatHints, type RecentCook } from "@/domain/cooking/history";
 import { normalizeSearchText } from "@/domain/ingredients/search";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import { matchAllRecipes, type RecipeMatch } from "@/domain/recipes/matching";
 import type { Recipe } from "@/domain/recipes/types";
 
-/** All recipes matched against current inventory, best candidates first. */
+/** Recipes cooked within the repeat hint window set in settings. */
+export function useRecentCooks(): ReadonlyMap<string, RecentCook> {
+  const { sessions, today, settings } = useApp();
+  return useMemo(
+    () => recentCooks(sessions, today, settings.repeatHintDays),
+    [sessions, today, settings.repeatHintDays],
+  );
+}
+
+/** "Cooked today / yesterday / N days ago", or null when not cooked recently. */
+export function useCookedAgoText(): (recipeId: string) => string | null {
+  const { t } = useTranslation();
+  const recent = useRecentCooks();
+  return (recipeId) => {
+    const cook = recent.get(recipeId);
+    if (!cook) return null;
+    if (cook.daysAgo === 0) return t("recipes.cookedToday");
+    if (cook.daysAgo === 1) return t("recipes.cookedYesterday");
+    return t("recipes.cookedDaysAgo", { count: cook.daysAgo });
+  };
+}
+
+/**
+ * All recipes matched against current inventory, best candidates first;
+ * recently cooked recipes go after others of the same readiness.
+ */
 export function useRecipeMatches(): RecipeMatch[] {
   const { recipes, lots, definitionsById, today } = useApp();
+  const recent = useRecentCooks();
   return useMemo(
-    () => matchAllRecipes(recipes, { lots, definitionsById, today }),
-    [recipes, lots, definitionsById, today],
+    () => sortWithRepeatHints(matchAllRecipes(recipes, { lots, definitionsById, today }), recent),
+    [recipes, lots, definitionsById, today, recent],
   );
 }
 

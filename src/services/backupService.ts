@@ -5,7 +5,13 @@ import { clockNow, systemClock, type Clock } from "./clock";
 export type ImportResult =
   | {
       ok: true;
-      counts: { ingredients: number; inventoryLots: number; transactions: number; recipes: number };
+      counts: {
+        ingredients: number;
+        inventoryLots: number;
+        transactions: number;
+        recipes: number;
+        cookingSessions: number;
+      };
     }
   | { ok: false; problems: string[] };
 
@@ -20,20 +26,21 @@ export class BackupService {
     private readonly clock: Clock = systemClock,
   ) {}
 
-  /** Reads everything while writes are paused, so lots and transactions match. */
+  /** Reads everything while writes are paused, so lots, transactions and sessions match. */
   async exportAll(): Promise<BackupFile> {
-    const [ingredients, inventoryLots, transactions, recipes, settings] =
+    const [ingredients, inventoryLots, transactions, recipes, cookingSessions, settings] =
       await this.repos.readConsistent(() =>
         Promise.all([
           this.repos.ingredients.listUserCreated(),
           this.repos.inventory.listLots(),
           this.repos.inventory.listTransactions(),
           this.repos.recipes.listUserCreated(),
+          this.repos.sessions.list(),
           this.repos.settings.load(),
         ]),
       );
     return createBackup(
-      { ingredients, inventoryLots, transactions, recipes, settings },
+      { ingredients, inventoryLots, transactions, recipes, cookingSessions, settings },
       clockNow(this.clock),
     );
   }
@@ -66,6 +73,7 @@ export class BackupService {
 
     await this.repos.atomic(async (tx) => {
       await tx.inventory.deleteAll();
+      await tx.sessions.deleteAll();
       await tx.recipes.deleteAllUserCreated();
       await tx.ingredients.deleteAllUserCreated();
       await tx.operations.deleteAll();
@@ -78,6 +86,9 @@ export class BackupService {
       }
       for (const lot of backup.data.inventoryLots) {
         await tx.inventory.saveLot(lot);
+      }
+      for (const session of backup.data.cookingSessions) {
+        await tx.sessions.insert(session);
       }
       for (const transaction of backup.data.transactions) {
         await tx.inventory.addTransaction(transaction);
@@ -92,6 +103,7 @@ export class BackupService {
         inventoryLots: backup.data.inventoryLots.length,
         transactions: backup.data.transactions.length,
         recipes: backup.data.recipes.length,
+        cookingSessions: backup.data.cookingSessions.length,
       },
     };
   }

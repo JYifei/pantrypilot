@@ -1,4 +1,4 @@
-import { Clock, Copy, CookingPot, Minus, Pencil, Plus, Trash2 } from "lucide-react";
+import { Clock, Copy, CookingPot, History, Minus, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ import { formatNumber, formatWeight } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CookDialog } from "./CookDialog";
 import { ReadinessBadge, StatusDot } from "./RecipeBadges";
+import { useCookedAgoText } from "./useRecipeMatches";
 import { useRecipeText } from "./useRecipeText";
 
 const MAX_SERVINGS = 20;
@@ -130,6 +131,7 @@ export function RecipeDetailDialog({
   const locale = useLocale();
   const { recipes, lots, definitionsById, today, services, reload } = useApp();
   const recipe = recipes.find((r) => r.id === recipeId);
+  const cookedAgo = useCookedAgoText()(recipeId);
   const [servings, setServings] = useState(recipe?.servings ?? 1);
   const [cooking, setCooking] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -200,6 +202,12 @@ export function RecipeDetailDialog({
             <Badge variant="outline">
               {recipe.isBuiltin ? t("recipes.demoRecipe") : t("recipes.custom")}
             </Badge>
+            {cookedAgo && (
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                <History className="size-4" />
+                {cookedAgo}
+              </span>
+            )}
             <div className="ml-auto flex items-center gap-2">
               <span className="text-muted-foreground">{t("recipes.servingsLabel")}</span>
               <Button

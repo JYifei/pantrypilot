@@ -62,8 +62,8 @@ export const TRANSACTION_TYPES = ["add", "consume", "adjust", "discard"] as cons
 export type InventoryTransactionType = (typeof TRANSACTION_TYPES)[number];
 
 /**
- * A quantity change on a lot. `consume` events are the hook for a future
- * MealLog: a meal will reference the transactions that supplied its ingredients.
+ * A quantity change on a lot. Consumption from cooking points at its
+ * CookingSession; older cooking transactions only carry the recipe ID.
  *
  * Quantities are positive amounts for add / consume / discard, and signed
  * deltas for adjust.
@@ -78,4 +78,6 @@ export interface InventoryTransaction {
   notes?: string;
   /** Set when the change came from cooking a recipe. */
   recipeId?: string;
+  /** Set when the change came from a cooking session (V0.3 and later). */
+  cookingSessionId?: string;
 }

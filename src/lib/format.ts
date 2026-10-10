@@ -34,6 +34,24 @@ export function formatDate(isoDate: string, locale: LocaleCode, today?: string):
   }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
+/** Local wall-clock time of an ISO timestamp, e.g. "18:42". */
+export function formatTime(isoDateTime: string, locale: LocaleCode): string {
+  return new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(
+    new Date(isoDateTime),
+  );
+}
+
+/** Local date and time of an ISO timestamp, e.g. "Oct 2, 18:42". */
+export function formatDateTime(isoDateTime: string, locale: LocaleCode): string {
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(isoDateTime));
+}
+
 const UNIT_SYMBOL: Record<NutrientUnit, string> = { kcal: "kcal", g: "g", mg: "mg", mcg: "µg" };
 
 export function nutrientUnitSymbol(unit: NutrientUnit): string {

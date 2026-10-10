@@ -73,13 +73,17 @@ describe("SQLite persistence (sql.js)", () => {
       theme: "dark",
       currency: "JPY",
       region: "JP",
+      repeatHintDays: 5,
     });
 
     const second = await createTestServices(clock, { data: fileBytes });
     const lots = await second.inventory.listLots();
     expect(lots).toHaveLength(1);
     expect(lots[0]?.thicknessMm).toBe(35);
-    expect((await second.repositories.settings.load()).language).toBe("ja-JP");
+    expect(await second.repositories.settings.load()).toMatchObject({
+      language: "ja-JP",
+      repeatHintDays: 5,
+    });
   });
 
   it("freezes a lot and extends its expiration date", async () => {
@@ -147,7 +151,7 @@ describe("JSON export / import round trip", () => {
     const result = await target.backup.importReplacingAll(parsed.backup);
     expect(result).toEqual({
       ok: true,
-      counts: { ingredients: 1, inventoryLots: 2, transactions: 3, recipes: 0 },
+      counts: { ingredients: 1, inventoryLots: 2, transactions: 3, recipes: 0, cookingSessions: 0 },
     });
 
     const reExported = await target.backup.exportAll();

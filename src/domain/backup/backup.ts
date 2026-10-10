@@ -1,16 +1,18 @@
 import { z } from "zod";
 import { APP_CONFIG } from "../../config/app";
+import type { CookingSession } from "../cooking/types";
 import type { IngredientDefinition } from "../ingredients/types";
 import type { InventoryLot, InventoryTransaction } from "../inventory/types";
 import { referencedIngredientIds } from "../recipes/matching";
 import type { Recipe } from "../recipes/types";
 import {
+  cookingSessionSchema,
   ingredientDefinitionSchema,
   inventoryLotSchema,
   inventoryTransactionSchema,
   recipeSchema,
 } from "../schemas";
-import { appSettingsSchema, type AppSettings } from "../settings/settings";
+import { appSettingsSchema, DEFAULT_SETTINGS, type AppSettings } from "../settings/settings";
 
 /**
  * Backup file format.
@@ -21,7 +23,7 @@ import { appSettingsSchema, type AppSettings } from "../settings/settings";
  *   2. add a step to BACKUP_MIGRATIONS that upgrades the previous version,
  *   3. keep the old steps so any historical export can still be imported.
  */
-export const CURRENT_BACKUP_SCHEMA_VERSION = 2;
+export const CURRENT_BACKUP_SCHEMA_VERSION = 3;
 
 export interface BackupData {
   /** Only user-created ingredients. Built-ins ship with the app. */
@@ -30,6 +32,8 @@ export interface BackupData {
   transactions: InventoryTransaction[];
   /** Only user-created recipes (added in schema version 2). */
   recipes: Recipe[];
+  /** Cooking history (added in schema version 3). */
+  cookingSessions: CookingSession[];
   settings: AppSettings;
 }
 
@@ -51,6 +55,7 @@ const backupFileSchema = z.object({
     inventoryLots: z.array(inventoryLotSchema),
     transactions: z.array(inventoryTransactionSchema),
     recipes: z.array(recipeSchema),
+    cookingSessions: z.array(cookingSessionSchema),
     settings: appSettingsSchema,
   }),
 });
@@ -64,6 +69,21 @@ const BACKUP_MIGRATIONS: Record<number, BackupMigration> = {
     schemaVersion: 2,
     data: { ...(isRecord(raw.data) ? raw.data : {}), recipes: [] },
   }),
+  // V0.2 → V0.3: no cooking sessions were recorded, and older cooking
+  // transactions stay as they are rather than being grouped into sessions.
+  2: (raw) => {
+    const data = isRecord(raw.data) ? raw.data : {};
+    const settings = isRecord(data.settings) ? data.settings : {};
+    return {
+      ...raw,
+      schemaVersion: 3,
+      data: {
+        ...data,
+        cookingSessions: [],
+        settings: { repeatHintDays: DEFAULT_SETTINGS.repeatHintDays, ...settings },
+      },
+    };
+  },
 };
 
 export function createBackup(data: BackupData, exportedAt: string): BackupFile {
@@ -142,7 +162,9 @@ export function parseBackup(text: string): BackupParseResult {
 
 /**
  * Referential checks that a schema cannot express: every lot must point at a
- * known ingredient and every transaction at a lot in the backup.
+ * known ingredient, every transaction at a lot in the backup, and every
+ * session link at a session in the backup. Sessions themselves only hold weak
+ * references (recipe, lots), because history outlives them.
  * Returns the list of problems (empty when consistent).
  */
 export function findBackupReferenceProblems(
@@ -155,6 +177,11 @@ export function findBackupReferenceProblems(
     ...backup.data.ingredients.map((i) => i.id),
   ]);
   const lotIds = new Set(backup.data.inventoryLots.map((l) => l.id));
+  const sessionIds = new Set<string>();
+  for (const session of backup.data.cookingSessions) {
+    if (sessionIds.has(session.id)) problems.push(`session ${session.id} appears twice`);
+    sessionIds.add(session.id);
+  }
   for (const lot of backup.data.inventoryLots) {
     if (!ingredientIds.has(lot.ingredientDefinitionId)) {
       problems.push(`lot ${lot.id} → unknown ingredient ${lot.ingredientDefinitionId}`);
@@ -163,6 +190,9 @@ export function findBackupReferenceProblems(
   for (const tx of backup.data.transactions) {
     if (!lotIds.has(tx.inventoryLotId)) {
       problems.push(`transaction ${tx.id} → unknown lot ${tx.inventoryLotId}`);
+    }
+    if (tx.cookingSessionId && !sessionIds.has(tx.cookingSessionId)) {
+      problems.push(`transaction ${tx.id} → unknown cooking session ${tx.cookingSessionId}`);
     }
   }
   for (const recipe of backup.data.recipes) {

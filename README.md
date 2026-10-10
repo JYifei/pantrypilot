@@ -36,11 +36,18 @@ the Vite dev server on `localhost` during development.
   spinach) or any cut of the same species. "Cook this" deducts the used amounts from your lots,
   earliest expiration first, after you confirm or adjust each amount. All deductions of one cook
   are saved in a single database transaction, and retrying a cook never deducts twice.
+- **Cooking log** (V0.3) — each cook is saved, in the same transaction as its deductions, as a
+  record with the recipe name, servings, amounts per lot (weighed or estimated) and an optional
+  note. Records are snapshots, so they stay readable after the recipe or lot is edited or
+  deleted. Recipes cooked in the last few days (configurable) are listed after similar options,
+  with a note saying when you made them. Deductions from before V0.3 are shown as-is, one by
+  one, and are not turned into records.
 - **Nutrition** — values per 100 g edible portion; _unknown is never treated as zero_. Totals
   with missing values are flagged as lower bounds. A nutrition sandbox lets you combine foods and
   weights; recipes show an estimated per-serving value. Experimental 1–10 heuristic scores are
   derived on the fly and never stored.
-- **Backup** — JSON export / import (ingredients, lots, transactions, custom recipes, settings)
+- **Backup** — JSON export / import (ingredients, lots, transactions, custom recipes, cooking
+  records, settings)
   with a `schemaVersion` and migration chain. Import replaces all data in one transaction; if it
   fails, the previous data is kept.
 
@@ -65,7 +72,8 @@ Prerequisites:
 ```bash
 pnpm install
 pnpm tauri dev      # desktop app (SQLite in the app config directory)
-pnpm dev            # browser preview only (sql.js, stored in localStorage)
+pnpm dev            # browser preview only (sql.js, stored in localStorage;
+                    # Settings → "Load sample data" fills it with demo inventory and history)
 ```
 
 Build an installer:
@@ -104,7 +112,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how the code is organised and
 
 - Nutrition values are demo data, not an authoritative dataset.
 - Built-in recipes are examples; seasonings are not tracked in inventory.
-- No meal log or shopping list yet.
+- No shopping list yet. Cooking records have no nutrition snapshot and cannot be undone.
 - Import replaces all data; there is no merge.
 - No installer signing or auto-update.
 
