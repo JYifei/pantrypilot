@@ -15,7 +15,8 @@
     "ingredients": "Ingredients",
     "settings": "Settings",
     "recipes": "Recipes",
-    "history": "Cooking log"
+    "history": "Cooking log",
+    "plan": "Plan & shopping"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -432,7 +433,7 @@
     "importHint": "Importing replaces all current inventory and custom ingredients.",
     "exported": "Exported: {{path}}",
     "importConfirmTitle": "Replace current data with this backup?",
-    "importConfirmBody": "Backup from {{date}} with {{lots}} inventory items, {{ingredients}} custom ingredients, {{transactions}} inventory changes and {{sessions}} cooking records. Current data will be replaced and this cannot be undone — consider exporting first.",
+    "importConfirmBody": "Backup from {{date}} with {{lots}} inventory items, {{ingredients}} custom ingredients, {{transactions}} inventory changes, {{sessions}} cooking records, {{plan}} planned dishes and {{shopping}} shopping list entries. Current data will be replaced and this cannot be undone — consider exporting first.",
     "importConfirm": "Replace and import",
     "importDone": "Import complete",
     "importErrors": {
@@ -457,7 +458,7 @@
     "sampleDataHint": "Browser preview only: loads sample inventory, cooking records and earlier deductions, dated relative to today.",
     "sampleDataLoad": "Load sample data",
     "sampleDataConfirmTitle": "Replace current data with sample data?",
-    "sampleDataConfirmBody": "Inventory, custom ingredients, custom recipes and cooking records in this preview will be replaced. This cannot be undone. Settings stay as they are.",
+    "sampleDataConfirmBody": "Inventory, custom ingredients, custom recipes, cooking records, the meal plan and the shopping list in this preview will be replaced. This cannot be undone. Settings stay as they are.",
     "sampleDataLoaded": "Sample data loaded"
   },
   "recipes": {
@@ -580,5 +581,61 @@
     "lotDeleted": "Item deleted",
     "legacyTitle": "Earlier deductions",
     "legacyExplanation": "These deductions were recorded before cooking records existed. Only the amount and the recipe ID were saved, with no servings, name snapshot or note, and there is no way to tell which rows belonged to the same meal. So they are listed one by one, are not turned into cooking records and do not count for repeat hints. Recipe names show the recipe as it is now. Deleting an inventory item also deletes its deduction rows."
+  },
+  "plan": {
+    "title": "Meal plan & shopping list",
+    "description": "Pick a few dishes and servings; all of them share one view of your stock to work out what is missing. Planning never deducts stock — only confirming that you cooked does.",
+    "dishesTitle": "Planned dishes",
+    "empty": "Nothing planned yet. Pick a dish below, or use “Add to plan” in a recipe.",
+    "addDish": "Add a dish…",
+    "noDeductionHint": "A plan is only an intention and never deducts stock. Stock is deducted when you choose “Cook this” and confirm; the dish then leaves the plan.",
+    "recipeMissing": "This dish's recipe no longer exists",
+    "remove": "Remove",
+    "cook": "Cook this",
+    "clearPlan": "Clear plan",
+    "clearPlanTitle": "Clear the plan?",
+    "clearPlanBody": "Removes every planned dish and the ticks, amounts and notes on its gaps. Items you added by hand stay. Stock is not affected.",
+    "gapsTitle": "To buy",
+    "gapsNoPlan": "Add dishes to the plan to see the merged gaps here.",
+    "gapsNone": "Your stock covers every planned dish; nothing is certainly missing.",
+    "gap": "Missing {{amount}}",
+    "approxPieces": "(about {{count}} pcs)",
+    "gapBreakdown": "Needed {{needed}} · from stock {{stock}}",
+    "fromRecipes": "For: {{names}}",
+    "buyAs": "{{recipe}}: buy as",
+    "plannedAmount": "Grams to buy",
+    "packNote": "Pack and quantity",
+    "packNotePlaceholder": "Pack size and quantity, e.g. 1 pack of 300 g",
+    "enterStock": "Add to stock",
+    "enterStockNotice": "The list planned {{amount}} of {{name}}. Enter the weight, dates and price of the pack you actually bought.",
+    "bought": "Bought: {{name}}",
+    "boughtHint": "Ticking “bought” is only a note and never changes stock. Once home, use “Add to stock” to record the actual pack.",
+    "confirmTitle": "Check your stock first",
+    "confirmHint": "You have these, but the amount is not recorded or several dishes share them, so it is unclear whether there is enough. Have a look; they are not counted as gaps.",
+    "confirmReason": {
+      "unknown_amount": "amount not recorded",
+      "allocation_uncertain": "shared with other dishes; may not be enough"
+    },
+    "seasoningsTitle": "Make sure you have",
+    "seasoningsHint": "Seasonings are not tracked as stock; just check before you go.",
+    "manualTitle": "Other items",
+    "manualLabelPlaceholder": "Item, e.g. milk",
+    "manualNotePlaceholder": "Quantity or note (optional)",
+    "manualAdd": "Add",
+    "clearBought": "Remove ticked items",
+    "addToPlan": "Add to plan",
+    "inPlan": "In the plan",
+    "open": "Open plan",
+    "toastAdded": "Added “{{name}}” to the plan ({{count}} servings)",
+    "cookFromPlanHint": "Once confirmed, this dish leaves the plan.",
+    "errors": {
+      "recipe_not_found": "Recipe not found",
+      "entry_not_found": "This dish is no longer in the plan",
+      "item_not_found": "Shopping item not found",
+      "invalid_servings": "Servings must be a whole number from 1 to 20",
+      "invalid_choice": "This ingredient cannot be used for this line",
+      "invalid_amount": "The amount must be a number above 0",
+      "invalid_text": "Enter some text (up to 200 characters)"
+    }
   }
 }

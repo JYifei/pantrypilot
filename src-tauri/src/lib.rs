@@ -34,6 +34,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0004_cooking_sessions.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 5,
+            description: "meal_plan",
+            sql: include_str!("../../src/db/migrations/0005_meal_plan.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -111,6 +117,50 @@ mod tests {
         .execute(&pool)
         .await;
         assert!(rejected.is_err(), "servings must be positive");
+
+        sqlx::raw_sql(
+            "INSERT INTO plan_entries (id, recipe_id, servings, position, created_at, updated_at)
+               VALUES ('p1', 'recipe_gyudon', 2, 0, 't', 't');
+             INSERT INTO shopping_items (id, source, ingredient_definition_id, planned_grams, created_at, updated_at)
+               VALUES ('plan:onion_raw', 'plan', 'onion_raw', 60, 't', 't');
+             INSERT INTO shopping_items (id, source, label, created_at, updated_at)
+               VALUES ('m1', 'manual', 'milk', 't', 't');",
+        )
+        .execute(&pool)
+        .await
+        .expect("record a plan and shopping list");
+
+        let choices: String =
+            sqlx::query_scalar("SELECT choices_json FROM plan_entries WHERE id = 'p1'")
+                .fetch_one(&pool)
+                .await
+                .expect("read plan entry");
+        assert_eq!(choices, "{}");
+
+        for (statement, why) in [
+            (
+                "INSERT INTO shopping_items (id, source, ingredient_definition_id, created_at, updated_at)
+                   VALUES ('plan:onion_raw#2', 'plan', 'onion_raw', 't', 't');",
+                "one plan item per ingredient",
+            ),
+            (
+                "INSERT INTO shopping_items (id, source, created_at, updated_at)
+                   VALUES ('plan:none', 'plan', 't', 't');",
+                "plan items need an ingredient",
+            ),
+            (
+                "INSERT INTO shopping_items (id, source, created_at, updated_at)
+                   VALUES ('m2', 'manual', 't', 't');",
+                "manual items need a label",
+            ),
+            (
+                "INSERT INTO plan_entries (id, recipe_id, servings, position, created_at, updated_at)
+                   VALUES ('p2', 'recipe_gyudon', 0, 1, 't', 't');",
+                "plan servings must be positive",
+            ),
+        ] {
+            assert!(sqlx::raw_sql(statement).execute(&pool).await.is_err(), "{why}");
+        }
     }
 }
 

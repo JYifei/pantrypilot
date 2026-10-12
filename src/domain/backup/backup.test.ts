@@ -93,6 +93,37 @@ const data: BackupData = {
       isBuiltin: false,
     },
   ],
+  planEntries: [
+    {
+      id: "plan-1",
+      recipeId: "recipe_gyudon",
+      servings: 3,
+      position: 0,
+      choices: { rice: "rice_white_raw" },
+      createdAt: "2026-10-04T02:00:00.000Z",
+      updatedAt: "2026-10-04T02:00:00.000Z",
+    },
+  ],
+  shoppingItems: [
+    {
+      id: "plan:onion_raw",
+      source: "plan",
+      ingredientDefinitionId: "onion_raw",
+      plannedGrams: 200,
+      note: "1 网袋",
+      bought: true,
+      createdAt: "2026-10-04T02:00:00.000Z",
+      updatedAt: "2026-10-04T02:10:00.000Z",
+    },
+    {
+      id: "manual-1",
+      source: "manual",
+      label: "牛奶",
+      bought: false,
+      createdAt: "2026-10-04T02:00:00.000Z",
+      updatedAt: "2026-10-04T02:00:00.000Z",
+    },
+  ],
   settings: DEFAULT_SETTINGS,
 };
 
@@ -171,10 +202,62 @@ describe("backup format", () => {
     expect(findBackupReferenceProblems(backup, new Set(["beef_misuji_raw"]))).toEqual([]);
   });
 
+  it("keeps plan entries and list items whose recipe or ingredient is unknown", () => {
+    const backup = createBackup(
+      {
+        ...data,
+        planEntries: [{ ...data.planEntries[0]!, recipeId: "deleted-recipe" }],
+        shoppingItems: [
+          { ...data.shoppingItems[0]!, id: "plan:gone", ingredientDefinitionId: "gone" },
+        ],
+      },
+      "x",
+    );
+    expect(findBackupReferenceProblems(backup, new Set(["beef_misuji_raw"]))).toEqual([]);
+  });
+
+  it("detects duplicated plan entries and plan items that do not match their ingredient", () => {
+    const backup = createBackup(
+      {
+        ...data,
+        planEntries: [data.planEntries[0]!, data.planEntries[0]!],
+        shoppingItems: [{ ...data.shoppingItems[0]!, id: "plan:egg_whole" }],
+      },
+      "x",
+    );
+    expect(findBackupReferenceProblems(backup, new Set(["beef_misuji_raw"]))).toEqual([
+      "plan entry plan-1 appears twice",
+      "shopping item plan:egg_whole does not match its ingredient",
+    ]);
+  });
+
+  it("rejects a manual item without a label", () => {
+    const broken = structuredClone(createBackup(data, "x"));
+    delete (broken.data.shoppingItems[1] as { label?: string }).label;
+    expect(parseBackup(JSON.stringify(broken)).ok).toBe(false);
+  });
+
+  it("upgrades a V0.3 part 1 (schema version 3) backup with an empty plan", () => {
+    const { planEntries: _plan, shoppingItems: _items, ...v3Data } = data;
+    const v3 = { ...createBackup(data, "x"), schemaVersion: 3, data: v3Data };
+    const result = parseBackup(JSON.stringify(v3));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.schemaVersion).toBe(CURRENT_BACKUP_SCHEMA_VERSION);
+    expect(result.backup.data.planEntries).toEqual([]);
+    expect(result.backup.data.shoppingItems).toEqual([]);
+    expect(result.backup.data.cookingSessions).toEqual(data.cookingSessions);
+  });
+
   /** A backup as V0.2 wrote it: no sessions, no session links, no repeat hint setting. */
   function v2Backup() {
     const { repeatHintDays: _setting, ...v2Settings } = DEFAULT_SETTINGS;
-    const { cookingSessions: _sessions, ...v2Data } = data;
+    const {
+      cookingSessions: _sessions,
+      planEntries: _plan,
+      shoppingItems: _items,
+      ...v2Data
+    } = data;
     return {
       ...createBackup(data, "x"),
       schemaVersion: 2,

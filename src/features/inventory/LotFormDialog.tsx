@@ -83,10 +83,18 @@ export function LotFormDialog({
   open,
   onOpenChange,
   editingLot,
+  presetDefinitionId,
+  notice,
+  onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingLot?: InventoryLot;
+  /** Food to start with when adding (e.g. from the shopping list). Amounts stay empty. */
+  presetDefinitionId?: string;
+  /** Shown above the form, e.g. how much the shopping list planned to buy. */
+  notice?: string;
+  onSaved?: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
   return (
@@ -96,11 +104,20 @@ export function LotFormDialog({
           <DialogTitle>{editingLot ? t("addFood.titleEdit") : t("addFood.titleAdd")}</DialogTitle>
           <DialogDescription>{t("addFood.description")}</DialogDescription>
         </DialogHeader>
+        {notice && (
+          <p className="rounded-lg border border-warning/60 bg-warning/10 px-3 py-2 text-sm">
+            {notice}
+          </p>
+        )}
         {open && (
           <LotFormBody
-            key={editingLot?.id ?? "new"}
+            key={editingLot?.id ?? presetDefinitionId ?? "new"}
             editingLot={editingLot}
-            onDone={() => onOpenChange(false)}
+            presetDefinitionId={presetDefinitionId}
+            onDone={async () => {
+              await onSaved?.();
+              onOpenChange(false);
+            }}
           />
         )}
       </DialogContent>
@@ -108,18 +125,37 @@ export function LotFormDialog({
   );
 }
 
-function LotFormBody({ editingLot, onDone }: { editingLot?: InventoryLot; onDone: () => void }) {
+function LotFormBody({
+  editingLot,
+  presetDefinitionId,
+  onDone,
+}: {
+  editingLot?: InventoryLot;
+  presetDefinitionId?: string;
+  onDone: () => void | Promise<void>;
+}) {
   const { t } = useTranslation();
   const locale = useLocale();
   const nameOf = useIngredientName();
   const { definitions, definitionsById, settings, today, services, reload } = useApp();
   const mode = editingLot ? "edit" : "add";
 
+  const [initialValues] = useState<LotFormValues>(() => {
+    if (editingLot) return lotToFormValues(editingLot, settings.currency);
+    const empty = emptyLotForm({ currency: settings.currency, today });
+    const preset = presetDefinitionId ? definitionsById.get(presetDefinitionId) : undefined;
+    return preset
+      ? {
+          ...empty,
+          ingredientDefinitionId: preset.id,
+          cut: preset.anatomicalCut ?? "",
+          storage: defaultStorageForCategory(preset.category),
+        }
+      : empty;
+  });
   const form = useForm<LotFormValues>({
     resolver: zodResolver(lotFormSchema),
-    defaultValues: editingLot
-      ? lotToFormValues(editingLot, settings.currency)
-      : emptyLotForm({ currency: settings.currency, today }),
+    defaultValues: initialValues,
   });
   const {
     register,
@@ -237,7 +273,7 @@ function LotFormBody({ editingLot, onDone }: { editingLot?: InventoryLot; onDone
               name: nameOf(definitionsById.get(input.ingredientDefinitionId)),
             }),
       );
-      onDone();
+      await onDone();
     } catch (error) {
       console.error(error);
       toast.error(t("common.error"), { description: String(error) });

@@ -140,6 +140,35 @@ export const cookingSessionSchema = z.object({
   note: z.string().optional(),
 });
 
+export const planEntrySchema = z.object({
+  id: z.string().min(1),
+  recipeId: z.string().min(1),
+  servings: z.number().int().positive(),
+  position: z.number().int(),
+  choices: z.record(z.string(), z.string().min(1)),
+  createdAt: isoDateTime,
+  updatedAt: isoDateTime,
+});
+
+export const shoppingItemSchema = z
+  .object({
+    id: z.string().min(1),
+    source: z.enum(["plan", "manual"]),
+    ingredientDefinitionId: z.string().min(1).optional(),
+    label: z.string().min(1).optional(),
+    plannedGrams: z.number().finite().positive().optional(),
+    note: z.string().optional(),
+    bought: z.boolean(),
+    createdAt: isoDateTime,
+    updatedAt: isoDateTime,
+  })
+  .refine((item) => item.source === "manual" || item.ingredientDefinitionId !== undefined, {
+    message: "Plan items need an ingredient",
+  })
+  .refine((item) => item.source === "plan" || item.label !== undefined, {
+    message: "Manual items need a label",
+  });
+
 export const recipeSchema = z.object({
   id: z.string().min(1),
   name: localizedTextSchema,

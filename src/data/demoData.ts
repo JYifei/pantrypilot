@@ -284,6 +284,8 @@ export function buildDemoBackup(today: IsoDate, settings: AppSettings): BackupFi
       transactions,
       recipes: [],
       cookingSessions: sessions,
+      planEntries: [],
+      shoppingItems: [],
       settings,
     },
     at(0, 0),

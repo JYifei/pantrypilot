@@ -11,6 +11,8 @@ export type ImportResult =
         transactions: number;
         recipes: number;
         cookingSessions: number;
+        planEntries: number;
+        shoppingItems: number;
       };
     }
   | { ok: false; problems: string[] };
@@ -28,19 +30,38 @@ export class BackupService {
 
   /** Reads everything while writes are paused, so lots, transactions and sessions match. */
   async exportAll(): Promise<BackupFile> {
-    const [ingredients, inventoryLots, transactions, recipes, cookingSessions, settings] =
-      await this.repos.readConsistent(() =>
-        Promise.all([
-          this.repos.ingredients.listUserCreated(),
-          this.repos.inventory.listLots(),
-          this.repos.inventory.listTransactions(),
-          this.repos.recipes.listUserCreated(),
-          this.repos.sessions.list(),
-          this.repos.settings.load(),
-        ]),
-      );
+    const [
+      ingredients,
+      inventoryLots,
+      transactions,
+      recipes,
+      cookingSessions,
+      planEntries,
+      shoppingItems,
+      settings,
+    ] = await this.repos.readConsistent(() =>
+      Promise.all([
+        this.repos.ingredients.listUserCreated(),
+        this.repos.inventory.listLots(),
+        this.repos.inventory.listTransactions(),
+        this.repos.recipes.listUserCreated(),
+        this.repos.sessions.list(),
+        this.repos.plan.listEntries(),
+        this.repos.plan.listItems(),
+        this.repos.settings.load(),
+      ]),
+    );
     return createBackup(
-      { ingredients, inventoryLots, transactions, recipes, cookingSessions, settings },
+      {
+        ingredients,
+        inventoryLots,
+        transactions,
+        recipes,
+        cookingSessions,
+        planEntries,
+        shoppingItems,
+        settings,
+      },
       clockNow(this.clock),
     );
   }
@@ -74,6 +95,7 @@ export class BackupService {
     await this.repos.atomic(async (tx) => {
       await tx.inventory.deleteAll();
       await tx.sessions.deleteAll();
+      await tx.plan.deleteAll();
       await tx.recipes.deleteAllUserCreated();
       await tx.ingredients.deleteAllUserCreated();
       await tx.operations.deleteAll();
@@ -93,6 +115,12 @@ export class BackupService {
       for (const transaction of backup.data.transactions) {
         await tx.inventory.addTransaction(transaction);
       }
+      for (const entry of backup.data.planEntries) {
+        await tx.plan.saveEntry(entry);
+      }
+      for (const item of backup.data.shoppingItems) {
+        await tx.plan.saveItem(item);
+      }
       await tx.settings.save(backup.data.settings);
     });
 
@@ -104,6 +132,8 @@ export class BackupService {
         transactions: backup.data.transactions.length,
         recipes: backup.data.recipes.length,
         cookingSessions: backup.data.cookingSessions.length,
+        planEntries: backup.data.planEntries.length,
+        shoppingItems: backup.data.shoppingItems.length,
       },
     };
   }

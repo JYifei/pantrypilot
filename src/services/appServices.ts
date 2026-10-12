@@ -4,6 +4,7 @@ import { BackupService } from "./backupService";
 import { systemClock, type Clock } from "./clock";
 import { IngredientService } from "./ingredientService";
 import { InventoryService } from "./inventoryService";
+import { PlanService } from "./planService";
 import { RecipeService } from "./recipeService";
 import { ensureBuiltinData, ensureBuiltinRecipes } from "./seedService";
 
@@ -13,6 +14,7 @@ export interface AppServices {
   inventory: InventoryService;
   ingredients: IngredientService;
   recipes: RecipeService;
+  plan: PlanService;
   backup: BackupService;
 }
 
@@ -30,6 +32,7 @@ export async function createAppServices(
     inventory: new InventoryService(repositories, clock),
     ingredients: new IngredientService(repositories, clock),
     recipes: new RecipeService(repositories, clock),
+    plan: new PlanService(repositories, clock),
     backup: new BackupService(repositories, clock),
   };
 }

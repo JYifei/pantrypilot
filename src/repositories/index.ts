@@ -3,6 +3,7 @@ import { SqliteCookingSessionRepository } from "./sqlite/SqliteCookingSessionRep
 import { SqliteIngredientRepository } from "./sqlite/SqliteIngredientRepository";
 import { SqliteInventoryRepository } from "./sqlite/SqliteInventoryRepository";
 import { SqliteOperationRepository } from "./sqlite/SqliteOperationRepository";
+import { SqlitePlanRepository } from "./sqlite/SqlitePlanRepository";
 import { SqliteRecipeRepository } from "./sqlite/SqliteRecipeRepository";
 import { SqliteSettingsRepository } from "./sqlite/SqliteSettingsRepository";
 import type { Repositories, RepositorySet } from "./types";
@@ -17,6 +18,7 @@ function createRepositorySet(db: SqlDatabase): RepositorySet {
     settings: new SqliteSettingsRepository(db),
     operations: new SqliteOperationRepository(db),
     sessions: new SqliteCookingSessionRepository(db),
+    plan: new SqlitePlanRepository(db),
   };
 }
 

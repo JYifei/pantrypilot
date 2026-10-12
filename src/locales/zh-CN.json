@@ -15,7 +15,8 @@
     "ingredients": "食材库",
     "settings": "设置",
     "recipes": "菜谱",
-    "history": "做菜记录"
+    "history": "做菜记录",
+    "plan": "计划与购物"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -432,7 +433,7 @@
     "importHint": "导入会替换当前的全部库存与自定义食材。",
     "exported": "已导出：{{path}}",
     "importConfirmTitle": "用备份替换当前数据？",
-    "importConfirmBody": "备份导出于 {{date}}，包含 {{lots}} 条库存、{{ingredients}} 个自定义食材、{{transactions}} 条库存流水和 {{sessions}} 条做菜记录。当前数据将被替换且无法撤销，建议先导出一份。",
+    "importConfirmBody": "备份导出于 {{date}}，包含 {{lots}} 条库存、{{ingredients}} 个自定义食材、{{transactions}} 条库存流水、{{sessions}} 条做菜记录、{{plan}} 道计划中的菜和 {{shopping}} 条购物清单记录。当前数据将被替换且无法撤销，建议先导出一份。",
     "importConfirm": "替换并导入",
     "importDone": "导入完成",
     "importErrors": {
@@ -457,7 +458,7 @@
     "sampleDataHint": "仅浏览器预览可用：载入一组示例库存、做菜记录和早期扣减记录，日期以今天为准。",
     "sampleDataLoad": "载入演示数据",
     "sampleDataConfirmTitle": "用演示数据替换当前数据？",
-    "sampleDataConfirmBody": "预览中的库存、自定义食材、自定义菜谱和做菜记录都会被替换，无法撤销。设置保持不变。",
+    "sampleDataConfirmBody": "预览中的库存、自定义食材、自定义菜谱、做菜记录、做菜计划和购物清单都会被替换，无法撤销。设置保持不变。",
     "sampleDataLoaded": "已载入演示数据"
   },
   "recipes": {
@@ -580,5 +581,61 @@
     "lotDeleted": "库存已删除",
     "legacyTitle": "早期扣减记录",
     "legacyExplanation": "这些是做菜记录功能上线前的库存扣减。当时只保存了扣减数量和菜谱 ID，没有保存份数、菜名快照和备注，也无法判断哪几条属于同一次做菜，所以这里逐条显示，不合并成做菜记录，也不参与重复提示。菜名显示的是菜谱现在的名称。删除库存时，它的扣减记录也会一起删除。"
+  },
+  "plan": {
+    "title": "做菜计划与购物清单",
+    "description": "选几道菜和份数，所有菜共用同一份库存来计算缺口。计划不会扣库存，只有确认做菜才会扣。",
+    "dishesTitle": "计划做的菜",
+    "empty": "还没有计划。从下面选一道菜，或在菜谱详情里点“加入计划”。",
+    "addDish": "加入一道菜…",
+    "noDeductionHint": "计划只是打算，不会扣减库存。点“做这道菜”并确认后才会扣减，并从计划中移除。",
+    "recipeMissing": "这道菜的菜谱已不存在",
+    "remove": "移除",
+    "cook": "做这道菜",
+    "clearPlan": "清空计划",
+    "clearPlanTitle": "清空计划？",
+    "clearPlanBody": "会移除所有计划中的菜，以及缺口上的勾选、数量和备注。手动添加的购物项会保留。库存不受影响。",
+    "gapsTitle": "需要买",
+    "gapsNoPlan": "加入计划的菜后，这里会显示合并后的缺口。",
+    "gapsNone": "现有库存够做计划里的所有菜，没有确定的缺口。",
+    "gap": "缺 {{amount}}",
+    "approxPieces": "（约 {{count}} 个）",
+    "gapBreakdown": "需要 {{needed}} · 库存可用 {{stock}}",
+    "fromRecipes": "来自：{{names}}",
+    "buyAs": "{{recipe}}：按这个买",
+    "plannedAmount": "打算买的克数",
+    "packNote": "包装与数量",
+    "packNotePlaceholder": "包装规格与数量，如 1 盒 300 g",
+    "enterStock": "录入库存",
+    "enterStockNotice": "购物清单计划买 {{name}} {{amount}}。请按实际买到的包装填写重量、日期和价格。",
+    "bought": "已买：{{name}}",
+    "boughtHint": "勾选“已买”只是记号，不会改动库存。买回来后请点“录入库存”，按实际包装登记。",
+    "confirmTitle": "先确认库存",
+    "confirmHint": "这些食材家里有，但数量没记录或被几道菜共用，无法确定够不够。请先看一眼，不计入缺口。",
+    "confirmReason": {
+      "unknown_amount": "库存数量未记录",
+      "allocation_uncertain": "与其他菜共用，无法确定是否够"
+    },
+    "seasoningsTitle": "请确认家中有",
+    "seasoningsHint": "调料不按库存计算，出门前确认一下即可。",
+    "manualTitle": "其他要买的",
+    "manualLabelPlaceholder": "物品，如 牛奶",
+    "manualNotePlaceholder": "数量或备注（可选）",
+    "manualAdd": "添加",
+    "clearBought": "清除已勾选",
+    "addToPlan": "加入计划",
+    "inPlan": "已在计划中",
+    "open": "查看计划",
+    "toastAdded": "已把“{{name}}”加入计划（{{count}} 人份）",
+    "cookFromPlanHint": "确认后，这道菜会从计划中移除。",
+    "errors": {
+      "recipe_not_found": "找不到这个菜谱",
+      "entry_not_found": "计划中已没有这道菜",
+      "item_not_found": "找不到这条购物项",
+      "invalid_servings": "份数需为 1–20 的整数",
+      "invalid_choice": "这个食材不能用于这一项",
+      "invalid_amount": "数量需为大于 0 的数字",
+      "invalid_text": "请填写内容（最多 200 字）"
+    }
   }
 }

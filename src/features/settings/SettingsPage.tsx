@@ -316,6 +316,8 @@ export function SettingsPage() {
                 ingredients: pendingImport.data.ingredients.length,
                 transactions: pendingImport.data.transactions.length,
                 sessions: pendingImport.data.cookingSessions.length,
+                plan: pendingImport.data.planEntries.length,
+                shopping: pendingImport.data.shoppingItems.length,
               })
             : ""
         }

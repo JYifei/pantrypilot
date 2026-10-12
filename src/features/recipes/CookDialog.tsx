@@ -49,10 +49,13 @@ function initialAmounts(match: RecipeMatch): Record<string, string> {
  */
 export function CookDialog({
   match,
+  planEntryId,
   onClose,
   onCooked,
 }: {
   match: RecipeMatch;
+  /** Cooking a planned dish removes it from the plan in the same transaction. */
+  planEntryId?: string;
   onClose: () => void;
   onCooked: () => void;
 }) {
@@ -119,6 +122,7 @@ export function CookDialog({
       const result = await services.recipes.cook(match.recipe.id, allocations, operationId, {
         servings: match.servings,
         note,
+        planEntryId,
       });
       if (!result.ok) {
         const lotName =
@@ -250,6 +254,9 @@ export function CookDialog({
               onChange={(e) => setNote(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">{t("recipes.cookRecordHint")}</p>
+            {planEntryId && (
+              <p className="text-xs text-muted-foreground">{t("plan.cookFromPlanHint")}</p>
+            )}
           </div>
         </div>
 

@@ -57,6 +57,8 @@ export interface CookDetails {
   /** Servings prepared; defaults to the recipe's own servings. */
   servings?: number;
   note?: string;
+  /** The planned dish this cooking completes; it leaves the plan in the same transaction. */
+  planEntryId?: string;
 }
 
 const COOK_OPERATION = "cook";
@@ -140,7 +142,10 @@ export class RecipeService {
     const existing = await this.repos.recipes.getById(id);
     if (!existing) return { ok: false, error: "not_found" };
     if (existing.isBuiltin) return { ok: false, error: "builtin" };
-    await this.repos.recipes.delete(id);
+    await this.repos.atomic(async (tx) => {
+      await tx.recipes.delete(id);
+      await tx.plan.deleteEntriesForRecipe(id);
+    });
     return { ok: true };
   }
 
@@ -195,6 +200,7 @@ export class RecipeService {
       servings: details.servings ?? null,
       note: note ?? null,
       lines,
+      ...(details.planEntryId ? { planEntryId: details.planEntryId } : {}),
     });
 
     if (operationId) {
@@ -248,6 +254,8 @@ export class RecipeService {
         };
         if (note) session.note = note;
         const transactionCount = changes.length;
+        const planEntries = details.planEntryId ? await this.repos.plan.listEntries() : [];
+        const completesPlan = planEntries.some((e) => e.id === details.planEntryId);
         await this.repos.atomic(async (tx) => {
           if (operationId) {
             await tx.operations.record({
@@ -266,6 +274,10 @@ export class RecipeService {
               cookingSessionId: sessionId,
             });
             await tx.inventory.updateLotIfUnchanged(result.lot, before);
+          }
+          if (completesPlan) {
+            await tx.plan.deleteEntry(details.planEntryId!);
+            if (planEntries.length === 1) await tx.plan.deletePlanItems();
           }
         });
         return { ok: true, transactionCount, sessionId };

@@ -1,4 +1,15 @@
-import { Clock, Copy, CookingPot, History, Minus, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  Clock,
+  Copy,
+  CookingPot,
+  History,
+  ListChecks,
+  ListPlus,
+  Minus,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -129,8 +140,10 @@ export function RecipeDetailDialog({
 }) {
   const { t } = useTranslation();
   const locale = useLocale();
-  const { recipes, lots, definitionsById, today, services, reload } = useApp();
+  const { recipes, lots, definitionsById, today, services, reload, planEntries, navigate } =
+    useApp();
   const recipe = recipes.find((r) => r.id === recipeId);
+  const planned = planEntries.some((e) => e.recipeId === recipeId);
   const cookedAgo = useCookedAgoText()(recipeId);
   const [servings, setServings] = useState(recipe?.servings ?? 1);
   const [cooking, setCooking] = useState(false);
@@ -154,6 +167,24 @@ export function RecipeDetailDialog({
     await reload();
     toast.success(t("recipes.toastDuplicated", { name: localize(copy.name, locale) }));
     onOpenRecipe(copy.id);
+  }
+
+  function openPlan() {
+    onClose();
+    navigate("plan");
+  }
+
+  async function addToPlan() {
+    if (!recipe) return;
+    const result = await services.plan.addRecipe(recipe.id, servings);
+    if (!result.ok) {
+      toast.error(t(`plan.errors.${result.error}`));
+      return;
+    }
+    await reload();
+    toast.success(t("plan.toastAdded", { name: localize(recipe.name, locale), count: servings }), {
+      action: { label: t("plan.open"), onClick: openPlan },
+    });
   }
 
   async function remove() {
@@ -317,6 +348,17 @@ export function RecipeDetailDialog({
                   {t("common.edit")}
                 </Button>
               </>
+            )}
+            {planned ? (
+              <Button variant="outline" onClick={openPlan}>
+                <ListChecks />
+                {t("plan.inPlan")}
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => void addToPlan()}>
+                <ListPlus />
+                {t("plan.addToPlan")}
+              </Button>
             )}
             <Button disabled={!canCook} onClick={() => setCooking(true)}>
               <CookingPot />

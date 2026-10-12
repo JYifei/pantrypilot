@@ -15,7 +15,8 @@
     "ingredients": "食材ライブラリ",
     "settings": "設定",
     "recipes": "レシピ",
-    "history": "料理記録"
+    "history": "料理記録",
+    "plan": "献立と買い物"
   },
   "languages": {
     "zh-CN": "简体中文",
@@ -432,7 +433,7 @@
     "importHint": "読み込むと現在の在庫とカスタム食材はすべて置き換えられます。",
     "exported": "書き出しました：{{path}}",
     "importConfirmTitle": "このバックアップで置き換えますか？",
-    "importConfirmBody": "{{date}} のバックアップ（在庫 {{lots}} 件、カスタム食材 {{ingredients}} 件、在庫履歴 {{transactions}} 件、料理記録 {{sessions}} 件）。現在のデータは置き換えられ、元に戻せません。先に書き出しておくことをおすすめします。",
+    "importConfirmBody": "{{date}} のバックアップ（在庫 {{lots}} 件、カスタム食材 {{ingredients}} 件、在庫履歴 {{transactions}} 件、料理記録 {{sessions}} 件、献立 {{plan}} 品、買い物リスト {{shopping}} 件）。現在のデータは置き換えられ、元に戻せません。先に書き出しておくことをおすすめします。",
     "importConfirm": "置き換えて読み込む",
     "importDone": "読み込みが完了しました",
     "importErrors": {
@@ -457,7 +458,7 @@
     "sampleDataHint": "ブラウザプレビュー専用：サンプルの在庫・料理記録・以前の差し引き記録を、今日の日付を基準に読み込みます。",
     "sampleDataLoad": "サンプルを読み込む",
     "sampleDataConfirmTitle": "現在のデータをサンプルで置き換えますか？",
-    "sampleDataConfirmBody": "このプレビューの在庫・カスタム食材・カスタムレシピ・料理記録が置き換えられ、元に戻せません。設定はそのままです。",
+    "sampleDataConfirmBody": "このプレビューの在庫・カスタム食材・カスタムレシピ・料理記録・献立・買い物リストが置き換えられ、元に戻せません。設定はそのままです。",
     "sampleDataLoaded": "サンプルデータを読み込みました"
   },
   "recipes": {
@@ -580,5 +581,61 @@
     "lotDeleted": "在庫削除済み",
     "legacyTitle": "以前の差し引き記録",
     "legacyExplanation": "料理記録機能より前に記録された在庫の差し引きです。当時は数量とレシピ ID しか保存しておらず、人数・料理名・メモはなく、どの行が同じ食事のものかも分かりません。そのため 1 行ずつ表示し、料理記録にはまとめず、重複ヒントにも使いません。料理名は現在のレシピ名です。在庫を削除すると、その差し引き記録も一緒に削除されます。"
+  },
+  "plan": {
+    "title": "献立と買い物リスト",
+    "description": "料理と人数を選ぶと、すべての料理で同じ在庫を分け合って不足分を計算します。献立を立てても在庫は減りません。減るのは「作った」と確認したときだけです。",
+    "dishesTitle": "作る予定の料理",
+    "empty": "まだ献立がありません。下から料理を選ぶか、レシピ詳細の「献立に追加」を使ってください。",
+    "addDish": "料理を追加…",
+    "noDeductionHint": "献立は予定なので在庫は減りません。「これを作る」で確認すると在庫が減り、献立から外れます。",
+    "recipeMissing": "この料理のレシピはもうありません",
+    "remove": "外す",
+    "cook": "これを作る",
+    "clearPlan": "献立を空にする",
+    "clearPlanTitle": "献立を空にしますか？",
+    "clearPlanBody": "予定の料理と、不足分に付けたチェック・数量・メモを消します。手動で追加した項目は残ります。在庫は変わりません。",
+    "gapsTitle": "買うもの",
+    "gapsNoPlan": "献立に料理を追加すると、まとめた不足分がここに表示されます。",
+    "gapsNone": "今の在庫で献立の料理がすべて作れます。確実な不足はありません。",
+    "gap": "不足 {{amount}}",
+    "approxPieces": "（約 {{count}} 個）",
+    "gapBreakdown": "必要 {{needed}} · 在庫から {{stock}}",
+    "fromRecipes": "使う料理：{{names}}",
+    "buyAs": "{{recipe}}：これで買う",
+    "plannedAmount": "買う予定のグラム数",
+    "packNote": "包装と数量",
+    "packNotePlaceholder": "包装サイズと数量（例：1 パック 300 g）",
+    "enterStock": "在庫に登録",
+    "enterStockNotice": "買い物リストでは {{name}} を {{amount}} 買う予定でした。実際に買った包装の重さ・日付・価格を入力してください。",
+    "bought": "購入済み：{{name}}",
+    "boughtHint": "「購入済み」のチェックは目印だけで、在庫は変わりません。帰宅後に「在庫に登録」で実際の包装を記録してください。",
+    "confirmTitle": "先に在庫を確認",
+    "confirmHint": "家にはありますが、量が未記録か複数の料理で共有しているため足りるか分かりません。一度確認してください。不足分には含めていません。",
+    "confirmReason": {
+      "unknown_amount": "量が未記録",
+      "allocation_uncertain": "ほかの料理と共有、足りるか不明"
+    },
+    "seasoningsTitle": "家にあるか確認",
+    "seasoningsHint": "調味料は在庫として数えません。出かける前に確認してください。",
+    "manualTitle": "そのほかの買い物",
+    "manualLabelPlaceholder": "品物（例：牛乳）",
+    "manualNotePlaceholder": "数量やメモ（任意）",
+    "manualAdd": "追加",
+    "clearBought": "チェック済みを消す",
+    "addToPlan": "献立に追加",
+    "inPlan": "献立に入っています",
+    "open": "献立を開く",
+    "toastAdded": "「{{name}}」を献立に追加しました（{{count}} 人分）",
+    "cookFromPlanHint": "確認すると、この料理は献立から外れます。",
+    "errors": {
+      "recipe_not_found": "レシピが見つかりません",
+      "entry_not_found": "この料理はもう献立にありません",
+      "item_not_found": "買い物項目が見つかりません",
+      "invalid_servings": "人数は 1〜20 の整数で入力してください",
+      "invalid_choice": "この食材はこの項目に使えません",
+      "invalid_amount": "数量は 0 より大きい数で入力してください",
+      "invalid_text": "内容を入力してください（200 文字まで）"
+    }
   }
 }

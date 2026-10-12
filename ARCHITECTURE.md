@@ -28,19 +28,19 @@ shadcn/ui (Radix) · Lucide · React Hook Form + Zod · i18next · Vitest · pnp
 
 ## Directory layout
 
-| Path               | Contents                                                            |
-| ------------------ | ------------------------------------------------------------------- |
-| `src/domain`       | Pure model + logic: taxonomy, nutrition, inventory, recipes, backup |
-| `src/data`         | Built-in ingredient definitions, recipes and nutrition source data  |
-| `src/db`           | `SqlDatabase` interface, adapters, SQL migrations                   |
-| `src/repositories` | Repository interfaces and SQLite implementations                    |
-| `src/services`     | Application services, seeding, heuristic scores                     |
-| `src/app`          | Boot, global state (`AppProvider`), shell and navigation            |
-| `src/features/*`   | One folder per screen: dashboard, inventory, recipes, nutrition, …  |
-| `src/components`   | Shared UI; `components/ui` is generated shadcn/ui                   |
-| `src/locales`      | `zh-CN.json` (reference), `en-US.json`, `ja-JP.json`                |
-| `src/lib`          | i18n setup, formatting, file save/open helpers                      |
-| `src-tauri`        | Rust shell: plugins, migrations, transaction command, capabilities  |
+| Path               | Contents                                                                      |
+| ------------------ | ----------------------------------------------------------------------------- |
+| `src/domain`       | Pure model + logic: taxonomy, nutrition, inventory, recipes, planning, backup |
+| `src/data`         | Built-in ingredient definitions, recipes and nutrition source data            |
+| `src/db`           | `SqlDatabase` interface, adapters, SQL migrations                             |
+| `src/repositories` | Repository interfaces and SQLite implementations                              |
+| `src/services`     | Application services, seeding, heuristic scores                               |
+| `src/app`          | Boot, global state (`AppProvider`), shell and navigation                      |
+| `src/features/*`   | One folder per screen: dashboard, inventory, recipes, nutrition, …            |
+| `src/components`   | Shared UI; `components/ui` is generated shadcn/ui                             |
+| `src/locales`      | `zh-CN.json` (reference), `en-US.json`, `ja-JP.json`                          |
+| `src/lib`          | i18n setup, formatting, file save/open helpers                                |
+| `src-tauri`        | Rust shell: plugins, migrations, transaction command, capabilities            |
 
 ## Domain model
 
@@ -106,7 +106,9 @@ Seasonings are plain localised text and are deliberately not matched against inv
 
 `src/domain/recipes/matching.ts` is pure and makes one allocation per recipe that the card,
 the detail dialog and the cook dialog all read (see
-[ADR 0002](docs/adr/0002-recipe-allocation.md)):
+[ADR 0002](docs/adr/0002-recipe-allocation.md)). `matchPlan` runs the same allocation over
+several dishes at once (see [Meal plan and shopping list](#meal-plan-and-shopping-list));
+`matchRecipe` is `matchPlan` with one dish:
 
 - Recipe grams are edible grams. A candidate lot is measured in its own stock quantity (grams,
   or units converted through the definition's conversions, marked as an estimate); bone-in or
@@ -159,6 +161,31 @@ grouped into sessions or counted for repeat hints.
 0 = off). `sortWithRepeatHints` keeps readiness first and moves those recipes after the others of
 the same readiness; cards show when they were cooked. Nothing is hidden.
 
+### Meal plan and shopping list
+
+A plan is a list of `PlanEntry` rows (recipe, servings, position, per-line buy choices). It is an
+intention only: nothing in the plan reserves or deducts stock. `matchPlan` allocates all planned
+dishes against one shared ledger; required lines are ordered by candidate count, then dish
+order, then line index, so an earlier dish wins a contested lot. With 100 g of onion and two
+dishes needing 80 g each, the second dish is short 60 g.
+
+`buildShoppingList` (`src/domain/planning`) derives the list from those matches every render:
+
+- **gaps**: required lines with a known shortfall, merged per ingredient to buy. For a line with
+  alternatives the user picks what to buy (default: the primary ingredient); the gap is
+  converted by the alternative's ratio and rounded up to whole grams, with an approximate piece
+  count when the ingredient has one;
+- **to confirm**: lines whose stock cannot be decided (`unknown_amount`,
+  `allocation_uncertain`); never counted as gaps;
+- **seasonings**: deduplicated text to check at home.
+
+Optional lines are left out. Only user input is stored: `shopping_items` holds the state of a
+derived gap (`plan:<ingredientId>`: bought mark, planned grams, pack note) and manual items.
+"Bought" never changes stock. "Enter stock" opens the normal add-lot form with the ingredient
+preset and the weight empty, and saving clears that gap's state. Cooking from the plan passes
+`planEntryId`, and the entry is removed in the same batch as the deductions; removing the last
+entry also clears gap states. See [ADR 0004](docs/adr/0004-meal-plan-and-shopping-list.md).
+
 ## Persistence
 
 ### Database adapters
@@ -198,7 +225,8 @@ The plugin keeps a connection pool, and each JS call may use a different connect
 
 What is atomic: adding a lot with its `add` transaction; every consume / adjust / discard with
 its lot update; a whole cook (the operation record, the cooking session, all transactions and
-all lot updates); a
+all lot updates, and removing the plan entry it was cooked from); removing a plan entry together
+with gap states; deleting a user recipe with its plan entries; a
 whole replacing import (deletes, inserts and settings). Built-in data seeding and settings
 saves are separate statements.
 
@@ -229,6 +257,7 @@ Migrations are plain SQL files in `src/db/migrations/`. The **same file** is use
 | 2       | `0002_recipes.sql`            | `recipes` table, `inventory_transactions.recipe_id` + index     |
 | 3       | `0003_applied_operations.sql` | `applied_operations` for retry-safe cooking                     |
 | 4       | `0004_cooking_sessions.sql`   | `cooking_sessions`, `inventory_transactions.cooking_session_id` |
+| 5       | `0005_meal_plan.sql`          | `plan_entries`, `shopping_items`                                |
 
 Released migrations are never edited.
 
@@ -246,9 +275,9 @@ Released migrations are never edited.
 ## Repository and service layer
 
 Repositories (`IngredientRepository`, `InventoryRepository`, `RecipeRepository`,
-`SettingsRepository`, `OperationRepository`, `CookingSessionRepository`) map rows to domain objects and contain all SQL. Services hold use cases
+`SettingsRepository`, `OperationRepository`, `CookingSessionRepository`, `PlanRepository`) map rows to domain objects and contain all SQL. Services hold use cases
 (`InventoryService.consume`, `IngredientService.deleteCustom` with "in use" / "in recipes"
-checks, `RecipeService.cook`, `BackupService.importReplacingAll`). `createAppServices(db, clock)`
+checks, `RecipeService.cook`, `PlanService.addRecipe`, `BackupService.importReplacingAll`). `createAppServices(db, clock)`
 wires everything and seeds built-in data. React reaches services only through `useApp()`.
 
 ## Internationalisation
@@ -263,7 +292,7 @@ locale keys. Lint and tests guard against hard-coded text and missing keys.
 ```json
 {
   "format": "pantrypilot-backup",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "exportedAt": "2026-10-10T12:00:00.000Z",
   "appVersion": "0.1.0",
   "data": {
@@ -272,6 +301,8 @@ locale keys. Lint and tests guard against hard-coded text and missing keys.
     "transactions": [],
     "recipes": [],
     "cookingSessions": [],
+    "planEntries": [],
+    "shoppingItems": [],
     "settings": {}
   }
 }
@@ -281,9 +312,12 @@ Only user-created ingredients and recipes are exported; built-ins are referenced
 IDs. On import the file is validated with Zod, migrated step by step through `BACKUP_MIGRATIONS`
 to the current version (1 → 2 adds an empty `recipes` list; 2 → 3 adds an empty
 `cookingSessions` list and the default `repeatHintDays`, without creating sessions from old
-transactions), checked for dangling references (including ingredients used by recipes,
-collisions with built-in recipe IDs, duplicate session IDs and transactions linked to a missing
-session; a session's recipe and lot links are weak and may point at deleted rows), and only then
+transactions; 3 → 4 adds empty `planEntries` and `shoppingItems`), checked for dangling
+references (including ingredients used by recipes, collisions with built-in recipe IDs,
+duplicate session IDs and transactions linked to a missing session, duplicate plan entry or
+shopping item IDs and plan items whose ID does not match their ingredient; a session's recipe
+and lot links and a plan's recipe and ingredient links are weak and may point at deleted rows),
+and only then
 replaces all user data in one transaction. If any write fails, the previous data stays.
 
 The browser preview (sql.js only) has a "load sample data" button in Settings that imports
@@ -311,13 +345,13 @@ run on sql.js and say nothing about the desktop path on their own. The Rust comm
 tests in `src-tauri/src/transaction.rs` against a temporary SQLite file with a multi-connection
 pool (commit, rollback on a failing statement, rollback on a guard mismatch, competing writes).
 `src-tauri/src/lib.rs` tests run the migration SQL compiled into the app, in order, on SQLite
-through sqlx, with a pre-migration-4 transaction that must stay unlinked.
+through sqlx, with a pre-migration-4 transaction that must stay unlinked and the plan and
+shopping-list constraints of migration 5.
 CI (`.github/workflows/ci.yml`) runs `pnpm check` and `pnpm build` on Ubuntu, and
 `cargo fmt --check` and `cargo test` on Windows.
 
 ## Future directions
 
 - Nutrition snapshot per cooking session; undo through compensating transactions.
-- Shopping list generated from the short lines of chosen recipes.
 - Optional LLM input (natural language or photos, recipe suggestions) would sit in front of the
   existing services as another input method, never as a data store, and stay off by default.

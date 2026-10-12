@@ -3,6 +3,7 @@ import {
   ChefHat,
   History,
   LayoutDashboard,
+  ListChecks,
   Refrigerator,
   Salad,
   Settings,
@@ -14,6 +15,7 @@ import { HistoryPage } from "@/features/history/HistoryPage";
 import { IngredientsPage } from "@/features/ingredients/IngredientsPage";
 import { InventoryPage } from "@/features/inventory/InventoryPage";
 import { NutritionPage } from "@/features/nutrition/NutritionPage";
+import { PlanPage } from "@/features/plan/PlanPage";
 import { RecipesPage } from "@/features/recipes/RecipesPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { cn } from "@/lib/utils";
@@ -23,6 +25,7 @@ const NAV_ITEMS: { id: PageId; icon: LucideIcon }[] = [
   { id: "dashboard", icon: LayoutDashboard },
   { id: "inventory", icon: Refrigerator },
   { id: "recipes", icon: ChefHat },
+  { id: "plan", icon: ListChecks },
   { id: "history", icon: History },
   { id: "nutrition", icon: Salad },
   { id: "ingredients", icon: BookOpen },
@@ -37,6 +40,8 @@ function CurrentPage({ page }: { page: PageId }) {
       return <InventoryPage />;
     case "recipes":
       return <RecipesPage />;
+    case "plan":
+      return <PlanPage />;
     case "history":
       return <HistoryPage />;
     case "nutrition":

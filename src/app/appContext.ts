@@ -5,6 +5,7 @@ import type { CookingSession } from "@/domain/cooking/types";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
+import type { PlanEntry, ShoppingItem } from "@/domain/planning/types";
 import type { Recipe } from "@/domain/recipes/types";
 import type { AppSettings } from "@/domain/settings/settings";
 import type { AppServices } from "@/services/appServices";
@@ -13,6 +14,7 @@ export const PAGES = [
   "dashboard",
   "inventory",
   "recipes",
+  "plan",
   "history",
   "nutrition",
   "ingredients",
@@ -39,8 +41,12 @@ export interface AppContextValue {
   recipes: Recipe[];
   /** Cooking history, newest first. */
   sessions: CookingSession[];
+  /** Planned dishes, in plan order. */
+  planEntries: PlanEntry[];
+  /** User input on the shopping list (gap states and manual items). */
+  shoppingItems: ShoppingItem[];
   today: IsoDate;
-  /** Re-read ingredients, sources, inventory, recipes and history from the database. */
+  /** Re-read ingredients, sources, inventory, recipes, history and the plan from the database. */
   reload(): Promise<void>;
   page: PageId;
   navigate(page: PageId): void;

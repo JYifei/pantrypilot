@@ -151,7 +151,15 @@ describe("JSON export / import round trip", () => {
     const result = await target.backup.importReplacingAll(parsed.backup);
     expect(result).toEqual({
       ok: true,
-      counts: { ingredients: 1, inventoryLots: 2, transactions: 3, recipes: 0, cookingSessions: 0 },
+      counts: {
+        ingredients: 1,
+        inventoryLots: 2,
+        transactions: 3,
+        recipes: 0,
+        cookingSessions: 0,
+        planEntries: 0,
+        shoppingItems: 0,
+      },
     });
 
     const reExported = await target.backup.exportAll();

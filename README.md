@@ -42,12 +42,18 @@ the Vite dev server on `localhost` during development.
   deleted. Recipes cooked in the last few days (configurable) are listed after similar options,
   with a note saying when you made them. Deductions from before V0.3 are shown as-is, one by
   one, and are not turned into records.
+- **Meal plan and shopping list** (V0.3) — pick several recipes and servings; all dishes share
+  one stock balance, so two dishes needing 80 g of onion with 100 g in stock show a 60 g gap.
+  Gaps are merged per ingredient with the recipes they come from; amounts that cannot be
+  measured are listed separately, and seasonings stay a "check at home" list. Planning never
+  deducts stock, and ticking "bought" is only a mark: "enter stock" opens the normal form so you
+  record the pack you actually bought.
 - **Nutrition** — values per 100 g edible portion; _unknown is never treated as zero_. Totals
   with missing values are flagged as lower bounds. A nutrition sandbox lets you combine foods and
   weights; recipes show an estimated per-serving value. Experimental 1–10 heuristic scores are
   derived on the fly and never stored.
 - **Backup** — JSON export / import (ingredients, lots, transactions, custom recipes, cooking
-  records, settings)
+  records, meal plan, shopping list, settings)
   with a `schemaVersion` and migration chain. Import replaces all data in one transaction; if it
   fails, the previous data is kept.
 

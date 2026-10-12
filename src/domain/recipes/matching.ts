@@ -113,7 +113,7 @@ export type LineReason =
   | "nearly_enough"
   | "unknown_amount"
   | "allocation_uncertain"
-  /** Stock exists but other lines of the recipe use it. */
+  /** Stock exists but other lines of the recipe (or of other planned dishes) use it. */
   | "shared";
 
 export interface IngredientLineMatch {
@@ -285,6 +285,8 @@ const isKnown = (candidate: CandidateLot) =>
 // --- Allocation ---------------------------------------------------------------
 
 interface LineState {
+  /** Position of the dish in the plan (0 when matching a single recipe). */
+  dish: number;
   index: number;
   ingredient: RecipeIngredient;
   neededGrams: number;
@@ -498,32 +500,48 @@ function toLineMatch(line: LineState, required: readonly LineState[]): Ingredien
   };
 }
 
+/** One dish of a plan: a recipe and the servings to cook. */
+export interface PlannedDish {
+  recipe: Recipe;
+  servings: number;
+}
+
 /**
- * Allocate stock to every line of a recipe:
- * 1. Required lines first, those with the fewest candidate lots first; each
- *    takes free stock, earliest expiration first.
+ * Allocate stock to every line of every dish with one shared ledger, so stock
+ * is never counted twice, within a recipe or across the dishes of a plan:
+ * 1. Required lines first, those with the fewest candidate lots first (then
+ *    dish and line order); each takes free stock, earliest expiration first.
  * 2. One round of reallocation for required lines that are still short.
  * 3. Optional lines only take what is left.
  * 4. Round to deductible amounts, then classify each line.
  */
-function allocateLines(recipe: Recipe, servings: number, context: MatchContext) {
-  const states: LineState[] = recipe.ingredients.map((ingredient, index) => {
-    const { candidates, excluded } = findCandidates(ingredient, context);
-    const known = candidates.filter(isKnown);
-    return {
-      index,
-      ingredient,
-      neededGrams: scaleGrams(ingredient, recipe, servings),
-      candidates,
-      excluded,
-      known,
-      amountUnknown: known.length < candidates.length,
-      taken: new Map(),
-    };
-  });
+function allocateDishes(
+  dishes: readonly PlannedDish[],
+  context: MatchContext,
+): IngredientLineMatch[][] {
+  const perDish: LineState[][] = dishes.map(({ recipe, servings }, dish) =>
+    recipe.ingredients.map((ingredient, index) => {
+      const { candidates, excluded } = findCandidates(ingredient, context);
+      const known = candidates.filter(isKnown);
+      return {
+        dish,
+        index,
+        ingredient,
+        neededGrams: scaleGrams(ingredient, recipe, servings),
+        candidates,
+        excluded,
+        known,
+        amountUnknown: known.length < candidates.length,
+        taken: new Map(),
+      };
+    }),
+  );
+  const states = perDish.flat();
   const required = states
     .filter((s) => !s.ingredient.optional)
-    .sort((a, b) => a.candidates.length - b.candidates.length || a.index - b.index);
+    .sort(
+      (a, b) => a.candidates.length - b.candidates.length || a.dish - b.dish || a.index - b.index,
+    );
   const optional = states.filter((s) => s.ingredient.optional);
 
   const ledger = new Ledger();
@@ -542,7 +560,7 @@ function allocateLines(recipe: Recipe, servings: number, context: MatchContext) 
   roundAllocation(required, roundedUsed);
   roundAllocation(optional, roundedUsed);
 
-  return states.map((line) => toLineMatch(line, required));
+  return perDish.map((lines) => lines.map((line) => toLineMatch(line, required)));
 }
 
 // --- Matching -----------------------------------------------------------------
@@ -569,7 +587,25 @@ export function matchRecipe(
   context: MatchContext,
   servings: number = recipe.servings,
 ): RecipeMatch {
-  const lines = allocateLines(recipe, servings, context);
+  return matchPlan([{ recipe, servings }], context)[0]!;
+}
+
+/**
+ * Match several dishes against one shared view of the inventory: each lot is
+ * allocated at most once across all of them. Pure: nothing is deducted.
+ * Results are in the order of `dishes`.
+ */
+export function matchPlan(dishes: readonly PlannedDish[], context: MatchContext): RecipeMatch[] {
+  return allocateDishes(dishes, context).map((lines, i) =>
+    summarizeMatch(dishes[i]!.recipe, dishes[i]!.servings, lines),
+  );
+}
+
+function summarizeMatch(
+  recipe: Recipe,
+  servings: number,
+  lines: IngredientLineMatch[],
+): RecipeMatch {
   const required = lines.filter((line) => !line.ingredient.optional);
   const shortLines = required.filter(
     (line) => line.status === "partial" || line.status === "missing",

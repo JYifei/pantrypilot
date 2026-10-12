@@ -3,6 +3,7 @@ import { APP_CONFIG } from "../../config/app";
 import type { CookingSession } from "../cooking/types";
 import type { IngredientDefinition } from "../ingredients/types";
 import type { InventoryLot, InventoryTransaction } from "../inventory/types";
+import { planItemId, type PlanEntry, type ShoppingItem } from "../planning/types";
 import { referencedIngredientIds } from "../recipes/matching";
 import type { Recipe } from "../recipes/types";
 import {
@@ -10,7 +11,9 @@ import {
   ingredientDefinitionSchema,
   inventoryLotSchema,
   inventoryTransactionSchema,
+  planEntrySchema,
   recipeSchema,
+  shoppingItemSchema,
 } from "../schemas";
 import { appSettingsSchema, DEFAULT_SETTINGS, type AppSettings } from "../settings/settings";
 
@@ -23,7 +26,7 @@ import { appSettingsSchema, DEFAULT_SETTINGS, type AppSettings } from "../settin
  *   2. add a step to BACKUP_MIGRATIONS that upgrades the previous version,
  *   3. keep the old steps so any historical export can still be imported.
  */
-export const CURRENT_BACKUP_SCHEMA_VERSION = 3;
+export const CURRENT_BACKUP_SCHEMA_VERSION = 4;
 
 export interface BackupData {
   /** Only user-created ingredients. Built-ins ship with the app. */
@@ -34,6 +37,9 @@ export interface BackupData {
   recipes: Recipe[];
   /** Cooking history (added in schema version 3). */
   cookingSessions: CookingSession[];
+  /** Meal plan and shopping list input (added in schema version 4). */
+  planEntries: PlanEntry[];
+  shoppingItems: ShoppingItem[];
   settings: AppSettings;
 }
 
@@ -56,6 +62,8 @@ const backupFileSchema = z.object({
     transactions: z.array(inventoryTransactionSchema),
     recipes: z.array(recipeSchema),
     cookingSessions: z.array(cookingSessionSchema),
+    planEntries: z.array(planEntrySchema),
+    shoppingItems: z.array(shoppingItemSchema),
     settings: appSettingsSchema,
   }),
 });
@@ -84,6 +92,12 @@ const BACKUP_MIGRATIONS: Record<number, BackupMigration> = {
       },
     };
   },
+  // V0.3 part 1 → part 2: there was no meal plan or shopping list.
+  3: (raw) => ({
+    ...raw,
+    schemaVersion: 4,
+    data: { ...(isRecord(raw.data) ? raw.data : {}), planEntries: [], shoppingItems: [] },
+  }),
 };
 
 export function createBackup(data: BackupData, exportedAt: string): BackupFile {
@@ -198,6 +212,21 @@ export function findBackupReferenceProblems(
   for (const recipe of backup.data.recipes) {
     for (const id of referencedIngredientIds(recipe)) {
       if (!ingredientIds.has(id)) problems.push(`recipe ${recipe.id} → unknown ingredient ${id}`);
+    }
+  }
+  // Plan entries and list items refer to recipes and ingredients weakly: the
+  // app shows what is missing instead of rejecting the backup.
+  const entryIds = new Set<string>();
+  for (const entry of backup.data.planEntries) {
+    if (entryIds.has(entry.id)) problems.push(`plan entry ${entry.id} appears twice`);
+    entryIds.add(entry.id);
+  }
+  const itemIds = new Set<string>();
+  for (const item of backup.data.shoppingItems) {
+    if (itemIds.has(item.id)) problems.push(`shopping item ${item.id} appears twice`);
+    itemIds.add(item.id);
+    if (item.source === "plan" && item.id !== planItemId(item.ingredientDefinitionId!)) {
+      problems.push(`shopping item ${item.id} does not match its ingredient`);
     }
   }
   return problems;

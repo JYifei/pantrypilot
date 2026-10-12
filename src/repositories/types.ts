@@ -2,6 +2,7 @@ import type { CookingSession } from "@/domain/cooking/types";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot, InventoryTransaction } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
+import type { PlanEntry, ShoppingItem } from "@/domain/planning/types";
 import type { Recipe } from "@/domain/recipes/types";
 import type { AppSettings } from "@/domain/settings/settings";
 
@@ -91,6 +92,24 @@ export interface CookingSessionRepository {
   deleteAll(): Promise<void>;
 }
 
+export interface PlanRepository {
+  /** In plan order. */
+  listEntries(): Promise<PlanEntry[]>;
+  /** Insert or overwrite. */
+  saveEntry(entry: PlanEntry): Promise<void>;
+  deleteEntry(id: string): Promise<void>;
+  deleteEntriesForRecipe(recipeId: string): Promise<void>;
+  listItems(): Promise<ShoppingItem[]>;
+  /** Insert or overwrite. */
+  saveItem(item: ShoppingItem): Promise<void>;
+  deleteItem(id: string): Promise<void>;
+  /** Remove the stored state of every plan gap (manual items stay). */
+  deletePlanItems(): Promise<void>;
+  deleteBoughtItems(): Promise<void>;
+  /** Remove the plan and the whole list. Used by backup import. */
+  deleteAll(): Promise<void>;
+}
+
 export interface RepositorySet {
   ingredients: IngredientRepository;
   inventory: InventoryRepository;
@@ -98,6 +117,7 @@ export interface RepositorySet {
   settings: SettingsRepository;
   operations: OperationRepository;
   sessions: CookingSessionRepository;
+  plan: PlanRepository;
 }
 
 export interface Repositories extends RepositorySet {

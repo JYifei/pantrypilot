@@ -4,6 +4,7 @@ import type { CookingSession } from "@/domain/cooking/types";
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryLot } from "@/domain/inventory/types";
 import type { NutritionSource } from "@/domain/nutrition/types";
+import type { PlanEntry, ShoppingItem } from "@/domain/planning/types";
 import type { Recipe } from "@/domain/recipes/types";
 import type { AppSettings } from "@/domain/settings/settings";
 import i18n from "@/lib/i18n";
@@ -18,6 +19,8 @@ export interface InitialAppData {
   lots: InventoryLot[];
   recipes: Recipe[];
   sessions: CookingSession[];
+  planEntries: PlanEntry[];
+  shoppingItems: ShoppingItem[];
 }
 
 /** Holds app-wide state loaded from the database and exposes it via AppContext. */
@@ -36,23 +39,37 @@ export function AppProvider({
   const [lots, setLots] = useState(initial.lots);
   const [recipes, setRecipes] = useState(initial.recipes);
   const [sessions, setSessions] = useState(initial.sessions);
+  const [planEntries, setPlanEntries] = useState(initial.planEntries);
+  const [shoppingItems, setShoppingItems] = useState(initial.shoppingItems);
   const [today, setToday] = useState(() => todayIsoDate());
   const [page, setPage] = useState<PageId>("dashboard");
   const [sandbox, setSandbox] = useState<SandboxEntry[]>([]);
 
   const reload = useCallback(async () => {
-    const [nextDefinitions, nextSources, nextLots, nextRecipes, nextSessions] = await Promise.all([
+    const [
+      nextDefinitions,
+      nextSources,
+      nextLots,
+      nextRecipes,
+      nextSessions,
+      nextPlanEntries,
+      nextShoppingItems,
+    ] = await Promise.all([
       services.ingredients.listAll(),
       services.ingredients.listSources(),
       services.inventory.listLots(),
       services.recipes.listAll(),
       services.recipes.listSessions(),
+      services.plan.listEntries(),
+      services.plan.listItems(),
     ]);
     setDefinitions(nextDefinitions);
     setSources(nextSources);
     setLots(nextLots);
     setRecipes(nextRecipes);
     setSessions(nextSessions);
+    setPlanEntries(nextPlanEntries);
+    setShoppingItems(nextShoppingItems);
     setToday(todayIsoDate());
   }, [services]);
 
@@ -94,6 +111,8 @@ export function AppProvider({
       lots,
       recipes,
       sessions,
+      planEntries,
+      shoppingItems,
       today,
       reload,
       page,
@@ -110,6 +129,8 @@ export function AppProvider({
       lots,
       recipes,
       sessions,
+      planEntries,
+      shoppingItems,
       today,
       reload,
       page,
