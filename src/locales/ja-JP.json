@@ -6,7 +6,7 @@
     "startupError": "起動できませんでした",
     "startupErrorHint": "ローカルデータベースを開けませんでした。エラー：",
     "retry": "再試行",
-    "devPreview": "ブラウザプレビュー：データはこのブラウザにのみ保存されます"
+    "devPreview": "ブラウザプレビュー：データはこのブラウザにのみ保存され、デスクトップ版には影響しません。デモデータは設定で読み込み・リセットできます。"
   },
   "nav": {
     "dashboard": "ホーム",
@@ -455,7 +455,7 @@
     "repeatHintToday": "今日のみ",
     "repeatHintDays": "直近 {{count}} 日",
     "sampleData": "サンプルデータ",
-    "sampleDataHint": "ブラウザプレビュー専用：サンプルの在庫・料理記録・以前の差し引き記録を、今日の日付を基準に読み込みます。",
+    "sampleDataHint": "ブラウザプレビュー専用：サンプルの在庫・料理記録・以前の差し引き記録を、今日の日付を基準に読み込みます。データは架空のものです。もう一度読み込むとデモが初期状態に戻ります。",
     "sampleDataLoad": "サンプルを読み込む",
     "sampleDataConfirmTitle": "現在のデータをサンプルで置き換えますか？",
     "sampleDataConfirmBody": "このプレビューの在庫・カスタム食材・カスタムレシピ・料理記録・献立・買い物リストが置き換えられ、元に戻せません。設定はそのままです。",
@@ -605,7 +605,7 @@
     "buyAs": "{{recipe}}：これで買う",
     "plannedAmount": "買う予定のグラム数",
     "packNote": "包装と数量",
-    "packNotePlaceholder": "包装サイズと数量（例：1 パック 300 g）",
+    "packNotePlaceholder": "例：1 パック 300 g",
     "enterStock": "在庫に登録",
     "enterStockNotice": "買い物リストでは {{name}} を {{amount}} 買う予定でした。実際に買った包装の重さ・日付・価格を入力してください。",
     "bought": "購入済み：{{name}}",

@@ -6,7 +6,7 @@
     "startupError": "Failed to start",
     "startupErrorHint": "The local database could not be opened. Error:",
     "retry": "Retry",
-    "devPreview": "Browser preview: data is stored only in this browser"
+    "devPreview": "Browser preview: data is stored only in this browser and never touches the desktop app. Load or reset the demo data in Settings."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -455,7 +455,7 @@
     "repeatHintToday": "Today only",
     "repeatHintDays": "Last {{count}} days",
     "sampleData": "Sample data",
-    "sampleDataHint": "Browser preview only: loads sample inventory, cooking records and earlier deductions, dated relative to today.",
+    "sampleDataHint": "Browser preview only: loads sample inventory, cooking records and earlier deductions, dated relative to today. The data is made up; load it again to reset the demo.",
     "sampleDataLoad": "Load sample data",
     "sampleDataConfirmTitle": "Replace current data with sample data?",
     "sampleDataConfirmBody": "Inventory, custom ingredients, custom recipes, cooking records, the meal plan and the shopping list in this preview will be replaced. This cannot be undone. Settings stay as they are.",
@@ -605,7 +605,7 @@
     "buyAs": "{{recipe}}: buy as",
     "plannedAmount": "Grams to buy",
     "packNote": "Pack and quantity",
-    "packNotePlaceholder": "Pack size and quantity, e.g. 1 pack of 300 g",
+    "packNotePlaceholder": "e.g. 1 × 300 g pack",
     "enterStock": "Add to stock",
     "enterStockNotice": "The list planned {{amount}} of {{name}}. Enter the weight, dates and price of the pack you actually bought.",
     "bought": "Bought: {{name}}",

@@ -5,21 +5,27 @@
 PantryPilot is a single-user desktop app. There is no server: a Tauri 2 shell hosts a React
 front-end, and all data lives in one SQLite file on the user's machine.
 
+```mermaid
+flowchart TD
+  UI["React UI<br/>src/app · src/features"] -->|"useApp()"| SVC["Services<br/>use cases · validation · retries"]
+  SVC --> UOW["Repositories.atomic<br/>unit of work: reads now, writes collected"]
+  SVC -->|reads| REPO["Repositories<br/>all SQL lives here"]
+  UOW --> REPO
+  REPO --> DB["SqlDatabase interface"]
+  DB -->|reads, single statements| PLUGIN["tauri-plugin-sql pool"]
+  DB -->|one batch = one transaction| RUST["Rust run_transaction<br/>one connection, guarded updates"]
+  DB -.->|tests and browser preview| SQLJS["sql.js<br/>BEGIN…COMMIT, then persist"]
+  PLUGIN --> FILE[(pantrypilot.db)]
+  RUST --> FILE
+  DOMAIN["Domain: pure types and functions<br/>matching, shopping list, backup"] -.- SVC
+  DOMAIN -.- UI
 ```
-React UI (src/app, src/features, src/components)
-        │  calls
-        ▼
-Services (src/services)          ← use cases, validation, transactions
-        │  calls
-        ▼
-Repositories (src/repositories)  ← interfaces + SQLite implementations
-        │  SqlDatabase interface
-        ▼
-Database adapter (src/db)        ← Tauri SQL plugin + Rust transaction command (desktop)
-                                   | sql.js (tests, browser preview)
 
-Domain (src/domain)  — pure types and functions, used by every layer above
-```
+Every multi-row write (adding a lot with its transaction, a whole cook, a replacing import) is
+collected by `Repositories.atomic` and sent as one batch; on desktop the Rust command runs it in
+one SQLite transaction on one connection, so it commits completely or not at all (see
+[Writes and transactions](#writes-and-transactions) and
+[ADR 0001](docs/adr/0001-desktop-transaction-boundary.md)).
 
 ## Tech stack
 
@@ -54,7 +60,8 @@ shadcn/ui (Radix) · Lucide · React Hook Form + Zod · i18next · Vitest · pnp
 
 A definition is a _nutrition identity_: two cuts with different nutrition are different
 definitions (`beef_misuji_raw`, `beef_sirloin_raw`). The form describes how it was cut or
-packaged and does not change nutrition per 100 g. A lot is one physical package you own.
+packaged and does not change nutrition per 100 g. A lot is one physical package you own. See
+[ADR 0005](docs/adr/0005-three-layer-ingredient-model.md).
 
 Species, cuts, forms, processing types, storage types and units are TypeScript `as const`
 enums in `src/domain/ingredients/taxonomy.ts`. Japanese supermarket wording is mapped to these
@@ -336,7 +343,8 @@ Vitest in a Node environment. Domain logic is tested directly; services and repo
 tested against an in-memory sql.js database running the real migrations, including a simulated
 restart (export database bytes → reopen), a backup round trip and cooking a recipe end to end.
 Built-in recipes are checked for valid ingredient references and complete translations. Locale
-files are tested for key parity and placeholder consistency.
+files are tested for key parity and placeholder consistency. `src/config/versions.test.ts` checks
+that the four copies of the app version agree.
 
 `src/services/reliability.integration.test.ts` injects failures into individual statements of a
 batch (second lot update of a cook, transaction insert, each stage of an import), simulates

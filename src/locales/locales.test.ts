@@ -33,6 +33,11 @@ describe("locale files", () => {
     expect(missing).toEqual([]);
   });
 
+  it("ja-JP covers every zh-CN key", () => {
+    const missing = [...zh.keys()].filter((k) => !ja.has(k));
+    expect(missing).toEqual([]);
+  });
+
   it("other locales contain no keys unknown to zh-CN", () => {
     expect([...en.keys()].filter((k) => !zh.has(k))).toEqual([]);
     expect([...ja.keys()].filter((k) => !zh.has(k))).toEqual([]);

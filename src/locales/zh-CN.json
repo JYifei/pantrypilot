@@ -6,7 +6,7 @@
     "startupError": "启动失败",
     "startupErrorHint": "无法打开本地数据库。错误信息：",
     "retry": "重试",
-    "devPreview": "浏览器预览模式：数据仅保存在当前浏览器中"
+    "devPreview": "浏览器预览模式：数据仅保存在当前浏览器中，与桌面版互不影响。演示数据可在设置中载入或重置。"
   },
   "nav": {
     "dashboard": "概览",
@@ -455,7 +455,7 @@
     "repeatHintToday": "仅今天",
     "repeatHintDays": "最近 {{count}} 天",
     "sampleData": "演示数据",
-    "sampleDataHint": "仅浏览器预览可用：载入一组示例库存、做菜记录和早期扣减记录，日期以今天为准。",
+    "sampleDataHint": "仅浏览器预览可用：载入一组示例库存、做菜记录和早期扣减记录，日期以今天为准。数据是虚构的；再次载入即可把演示恢复到初始状态。",
     "sampleDataLoad": "载入演示数据",
     "sampleDataConfirmTitle": "用演示数据替换当前数据？",
     "sampleDataConfirmBody": "预览中的库存、自定义食材、自定义菜谱、做菜记录、做菜计划和购物清单都会被替换，无法撤销。设置保持不变。",
@@ -605,7 +605,7 @@
     "buyAs": "{{recipe}}：按这个买",
     "plannedAmount": "打算买的克数",
     "packNote": "包装与数量",
-    "packNotePlaceholder": "包装规格与数量，如 1 盒 300 g",
+    "packNotePlaceholder": "如 1 盒 300 g",
     "enterStock": "录入库存",
     "enterStockNotice": "购物清单计划买 {{name}} {{amount}}。请按实际买到的包装填写重量、日期和价格。",
     "bought": "已买：{{name}}",

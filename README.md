@@ -2,14 +2,58 @@
 
 > Working name — see [CONTRIBUTING.md](CONTRIBUTING.md#renaming-the-project) for how to rename.
 
-PantryPilot is a local-first, offline desktop app for people who cook regularly. It tracks the
-food you actually have — modelled the way groceries appear in (Japanese) supermarkets, e.g.
-"beef / misuji / steak / 251 g / 35 mm" — calculates nutrition from what is in stock, and shows
-which recipes you can cook with it.
+**A local-first desktop app that tracks the food you actually have, shows what you can cook
+with it, and works out one shopping list for several dishes.** Built with Tauri 2, React,
+TypeScript and SQLite; it runs fully offline and sends your data nowhere.
+
+![Dashboard with items to use first and recipes you can cook now](docs/screenshots/1-dashboard-zh.png)
+
+## What it does
+
+- **Stock as you buy it.** Record packs the way (Japanese) supermarkets sell them — "beef /
+  misuji / steak / 251 g" — with expiry dates, and see what to use first.
+- **What can I cook?** Recipes are matched against your lots. One allocation is shared by all
+  lines of a recipe, so a lot is never counted twice, and every suggestion shows which lots it
+  would use and why.
+- **Plan several dishes.** All planned dishes share one stock balance: with 100 g of onion and
+  two dishes needing 80 g each, the shopping list says 60 g, not "nothing".
+- **Cook and keep a log.** You confirm each deduction; the deductions and a cooking record are
+  saved in one transaction, and retrying never deducts twice. Recently cooked dishes move down
+  the list.
+- **Three languages.** Simplified Chinese (default), English and Japanese, for the UI and the
+  food names.
 
 It is **not** a calorie-counting or dieting app and gives no medical advice.
 
-Progress and plans are tracked in [ROADMAP.md](ROADMAP.md) (checklist, Chinese).
+## Status
+
+A personal project in active development. The cooking log, meal plan and shopping list (V0.3)
+are done; real nutrition data (V0.4) and a Windows installer are next. Nutrition values are
+**demo data** for now. It has been run and checked on Windows 11 from source (`pnpm tauri dev`);
+no installer has been released and macOS/Linux have not been tested. Progress is tracked in
+[ROADMAP.md](ROADMAP.md) (checklist, Chinese).
+
+## Quick start
+
+Needs Node.js 22+ (CI uses 24), pnpm 12, and for the desktop app Rust with the
+[Tauri 2 prerequisites](https://tauri.app/start/prerequisites/).
+
+```bash
+pnpm install
+pnpm tauri dev   # desktop app
+pnpm dev         # or a browser preview at http://localhost:1420 —
+                 # Settings → "Load sample data" fills it with made-up demo data
+```
+
+## Screenshots
+
+From the browser preview with the bundled, made-up demo data; the desktop app shows the same UI.
+
+| Recipe detail: which lots each line uses                       | Cook dialog (Japanese): confirm or change each deduction   |
+| -------------------------------------------------------------- | ---------------------------------------------------------- |
+| ![Recipe detail](docs/screenshots/2-recipe-zh.png)             | ![Cook dialog in Japanese](docs/screenshots/3-cook-ja.png) |
+| **Meal plan (English): one merged gap for two dishes**         | **Cooking log: snapshots that survive deleted recipes**    |
+| ![Meal plan and shopping list](docs/screenshots/4-plan-en.png) | ![Cooking log](docs/screenshots/5-history-zh.png)          |
 
 ## Privacy
 
@@ -19,7 +63,7 @@ external servers.
 There is no account, no cloud sync, no analytics and no telemetry. The only network access is
 the Vite dev server on `localhost` during development.
 
-## Features
+## Features in detail
 
 - **Ingredient taxonomy** — ingredient definitions (nutrition identity, e.g. "beef misuji"),
   product forms (steak, yakiniku slices, ground…) and inventory lots are separate concepts.
@@ -82,7 +126,7 @@ pnpm dev            # browser preview only (sql.js, stored in localStorage;
                     # Settings → "Load sample data" fills it with demo inventory and history)
 ```
 
-Build an installer:
+Build an installer (not yet tested on a clean machine):
 
 ```bash
 pnpm tauri build
@@ -118,9 +162,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how the code is organised and
 
 - Nutrition values are demo data, not an authoritative dataset.
 - Built-in recipes are examples; seasonings are not tracked in inventory.
-- No shopping list yet. Cooking records have no nutrition snapshot and cannot be undone.
+- Cooking records have no nutrition snapshot and cannot be undone.
+- The shopping list leaves out optional ingredients, counts edible grams (bone-in cuts need
+  more at the shop) and cannot add manual items to stock.
 - Import replaces all data; there is no merge.
-- No installer signing or auto-update.
+- Tested on Windows only. No released installer yet, no signing, no auto-update.
 
 ## License
 

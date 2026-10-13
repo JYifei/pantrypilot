@@ -1,14 +1,55 @@
 import { describe, expect, it } from "vitest";
 import { findBackupReferenceProblems, parseBackup, serializeBackup } from "@/domain/backup/backup";
 import { legacyCookTransactions, recentCooks } from "@/domain/cooking/history";
+import { buildShoppingList } from "@/domain/planning/shoppingList";
+import { matchPlan } from "@/domain/recipes/matching";
 import { DEFAULT_SETTINGS } from "@/domain/settings/settings";
-import { createTestServices } from "@/test/testDatabase";
+import type { AppServices } from "@/services/appServices";
+import { createTestServices, fixedClock } from "@/test/testDatabase";
 import { BUILTIN_INGREDIENTS } from "./builtinIngredients";
 import { BUILTIN_RECIPES } from "./builtinRecipes";
 import { buildDemoBackup } from "./demoData";
 
 const TODAY = "2026-10-10";
 const builtinIds = new Set(BUILTIN_INGREDIENTS.map((d) => d.id));
+
+/** What a demo viewer sees: every recipe's readiness and the gaps of the planned dishes. */
+async function demoOutcome(services: AppServices) {
+  const [recipes, lots, definitions, entries] = await Promise.all([
+    services.recipes.listAll(),
+    services.inventory.listLots(),
+    services.ingredients.listAll(),
+    services.plan.listEntries(),
+  ]);
+  const definitionsById = new Map(definitions.map((d) => [d.id, d]));
+  const context = { lots, definitionsById, today: TODAY };
+  const readiness = recipes
+    .map((recipe) => [
+      recipe.id,
+      matchPlan([{ recipe, servings: recipe.servings }], context)[0]!.readiness,
+    ])
+    .sort();
+  const planned = entries.map((entry) => ({
+    entry,
+    recipe: recipes.find((r) => r.id === entry.recipeId)!,
+  }));
+  const matches = matchPlan(
+    planned.map(({ entry, recipe }) => ({ recipe, servings: entry.servings })),
+    context,
+  );
+  const list = buildShoppingList(
+    matches.map((match, i) => ({
+      entryId: planned[i]!.entry.id,
+      match,
+      choices: planned[i]!.entry.choices,
+    })),
+    definitionsById,
+  );
+  return {
+    readiness,
+    gaps: list.gaps.map((g) => [g.ingredientId, g.neededGrams, g.inStockGrams, g.gapGrams]),
+  };
+}
 
 describe("demo data", () => {
   const backup = buildDemoBackup(TODAY, DEFAULT_SETTINGS);
@@ -73,6 +114,33 @@ describe("demo data", () => {
     const legacy = legacyCookTransactions(await services.inventory.listTransactions());
     expect(legacy).toHaveLength(2);
     expect(legacy.every((t) => t.recipeId === "recipe_japanese_curry")).toBe(true);
+  });
+
+  it("gives the same recommendations and gaps again after a reset", async () => {
+    const services = await createTestServices(fixedClock(`${TODAY}T09:00:00.000Z`));
+    const load = async () => {
+      expect((await services.backup.importReplacingAll(backup)).ok).toBe(true);
+      for (const id of ["recipe_oyakodon", "recipe_gyudon"]) {
+        expect((await services.plan.addRecipe(id, 2)).ok).toBe(true);
+      }
+      return demoOutcome(services);
+    };
+
+    const first = await load();
+    expect(first.gaps).toContainEqual(["onion_raw", 250, 100, 150]);
+    expect(first.readiness.some(([, r]) => r === "ready")).toBe(true);
+
+    const lot = await services.inventory.addLot({
+      ingredientDefinitionId: "onion_raw",
+      originalWeightG: 520,
+      processing: [],
+      storage: "refrigerated",
+      opened: false,
+    });
+    expect((await demoOutcome(services)).gaps).not.toEqual(first.gaps);
+    expect(lot.remainingWeightG).toBe(520);
+
+    expect(await load()).toEqual(first);
   });
 
   it("writes the note in the chosen language", () => {
