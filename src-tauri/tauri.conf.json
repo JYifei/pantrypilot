@@ -27,9 +27,16 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
     "category": "Lifestyle",
     "shortDescription": "Local-first food inventory and nutrition",
+    "longDescription": "PantryPilot tracks the food you have, shows what you can cook, and works out one shopping list for several dishes. Fully offline; no account and no telemetry.",
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false
+      }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

@@ -1,0 +1,62 @@
+name: Build Windows installer
+
+# Manual only. Does not create tags or GitHub Releases.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "12.9.1"
+
+jobs:
+  nsis:
+    name: NSIS installer (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build NSIS installer
+        run: pnpm tauri build
+
+      - name: Checksum
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe | Select-Object -First 1
+          if (-not $exe) { throw "installer not found" }
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Encoding ascii "$($exe.FullName).sha256" "$hash  $($exe.Name)"
+          Write-Host "SHA-256 $hash"
+          Write-Host "file $($exe.FullName) ($($exe.Length) bytes)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pantrypilot-windows-nsis
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.sha256
+          if-no-files-found: error
+          retention-days: 14

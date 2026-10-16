@@ -11,6 +11,9 @@ coverage/
 src-tauri/target/
 src-tauri/gen/schemas/
 
+# Local installer builds (binaries stay on disk; checksums are in docs/releases/)
+/releases/
+
 # Local databases and backups (never commit personal data)
 *.db
 *.db-shm

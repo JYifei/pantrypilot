@@ -7,6 +7,13 @@ the user's data file.
 
 ## Unreleased
 
+### Windows installer (round 4, part 2)
+
+- NSIS installer for Windows (`pnpm tauri build`); unsigned; current-user install.
+- Release notes and checksum: `docs/releases/0.1.0.md`.
+- Manual GitHub Actions workflow to build and upload the installer (no Release, no tag).
+- No database or backup format changes.
+
 ### Presentation (round 4, part 1)
 
 - README rewritten with a short summary, status, quick start and real screenshots from the

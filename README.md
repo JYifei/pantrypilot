@@ -28,10 +28,10 @@ It is **not** a calorie-counting or dieting app and gives no medical advice.
 ## Status
 
 A personal project in active development. The cooking log, meal plan and shopping list (V0.3)
-are done; real nutrition data (V0.4) and a Windows installer are next. Nutrition values are
-**demo data** for now. It has been run and checked on Windows 11 from source (`pnpm tauri dev`);
-no installer has been released and macOS/Linux have not been tested. Progress is tracked in
-[ROADMAP.md](ROADMAP.md) (checklist, Chinese).
+are done; real nutrition data (V0.4) is next. Nutrition values are **demo data** for now.
+A Windows NSIS installer can be built with `pnpm tauri build` (unsigned pre-release; see
+[docs/releases/0.1.0.md](docs/releases/0.1.0.md)). macOS/Linux have not been tested. Progress
+is tracked in [ROADMAP.md](ROADMAP.md) (checklist, Chinese).
 
 ## Quick start
 
@@ -126,11 +126,16 @@ pnpm dev            # browser preview only (sql.js, stored in localStorage;
                     # Settings → "Load sample data" fills it with demo inventory and history)
 ```
 
-Build an installer (not yet tested on a clean machine):
+Build a Windows NSIS installer (unsigned; SmartScreen may warn):
 
 ```bash
 pnpm tauri build
+# → src-tauri/target/release/bundle/nsis/PantryPilot_0.1.0_x64-setup.exe
 ```
+
+Details, SHA-256 and a smoke-test checklist:
+[docs/releases/0.1.0.md](docs/releases/0.1.0.md). GitHub Actions → **Build Windows installer**
+(manual) can produce the same artifact.
 
 ### Where is my data?
 
@@ -166,7 +171,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how the code is organised and
 - The shopping list leaves out optional ingredients, counts edible grams (bone-in cuts need
   more at the shop) and cannot add manual items to stock.
 - Import replaces all data; there is no merge.
-- Tested on Windows only. No released installer yet, no signing, no auto-update.
+- Tested on Windows only. An unsigned NSIS installer can be built locally or via a manual
+  workflow; there is no signed public release and no auto-update.
 
 ## License
 
