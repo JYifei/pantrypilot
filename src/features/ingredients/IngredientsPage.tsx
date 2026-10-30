@@ -146,9 +146,7 @@ export function IngredientsPage() {
                       {!d.isBuiltin && <Badge variant="outline">{t("ingredients.custom")}</Badge>}
                     </div>
                     <div className="truncate text-xs text-muted-foreground">
-                      {[d.name.zhCN, d.name.enUS, d.name.jaJP]
-                        .filter((x) => x && x !== nameOf(d))
-                        .join(" · ")}
+                      {[d.name.zhCN, d.name.jaJP].filter((x) => x && x !== nameOf(d)).join(" · ")}
                     </div>
                   </div>
                 </div>

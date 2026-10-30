@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isLocaleCode } from "../common/localizedText";
 import { APP_CONFIG } from "../../config/app";
 import type { CookingSession } from "../cooking/types";
 import type { IngredientDefinition } from "../ingredients/types";
@@ -64,7 +65,9 @@ const backupFileSchema = z.object({
     cookingSessions: z.array(cookingSessionSchema),
     planEntries: z.array(planEntrySchema),
     shoppingItems: z.array(shoppingItemSchema),
-    settings: appSettingsSchema,
+    settings: appSettingsSchema.extend({
+      language: z.string().transform((v) => (isLocaleCode(v) ? v : DEFAULT_SETTINGS.language)),
+    }),
   }),
 });
 

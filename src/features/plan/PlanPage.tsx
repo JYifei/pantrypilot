@@ -28,7 +28,7 @@ import { matchRecipe } from "@/domain/recipes/matching";
 import { LotFormDialog } from "@/features/inventory/LotFormDialog";
 import { CookDialog } from "@/features/recipes/CookDialog";
 import { ReadinessBadge } from "@/features/recipes/RecipeBadges";
-import { formatNumber, formatWeight } from "@/lib/format";
+import { formatList, formatNumber, formatWeight } from "@/lib/format";
 import type { PlanResult } from "@/services/planService";
 import { usePlan, type PlanRow } from "./usePlan";
 
@@ -258,11 +258,12 @@ function GapRow({
         </div>
         <div className="text-xs text-muted-foreground">
           {t("plan.fromRecipes", {
-            names: gap.sources
-              .map(
+            names: formatList(
+              gap.sources.map(
                 (s) => `${localize(s.recipe.name, locale)} ${formatWeight(s.neededGrams, locale)}`,
-              )
-              .join(", "),
+              ),
+              locale,
+            ),
           })}
         </div>
         {gap.sources
@@ -512,7 +513,10 @@ export function PlanPage() {
                   <li
                     key={s.text.zhCN}
                     className="rounded-full bg-muted px-2.5 py-0.5 text-xs"
-                    title={s.recipes.map((r) => localize(r.name, locale)).join(", ")}
+                    title={formatList(
+                      s.recipes.map((r) => localize(r.name, locale)),
+                      locale,
+                    )}
                   >
                     {localize(s.text, locale)}
                     {s.recipes.length > 1 && (

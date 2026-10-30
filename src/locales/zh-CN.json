@@ -20,7 +20,6 @@
   },
   "languages": {
     "zh-CN": "简体中文",
-    "en-US": "English",
     "ja-JP": "日本語"
   },
   "common": {
@@ -390,7 +389,6 @@
     "formTitleNew": "新建自定义食材",
     "formTitleEdit": "编辑自定义食材",
     "formNameZh": "中文名称",
-    "formNameEn": "英文名称",
     "formNameJa": "日文名称",
     "formAliases": "别名（逗号分隔）",
     "formCategory": "分类",

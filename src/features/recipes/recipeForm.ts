@@ -42,7 +42,6 @@ export type RecipeFormLine = RecipeFormValues["ingredients"][number];
 
 const LOCALE_SLOT: Record<LocaleCode, keyof LocalizedText> = {
   "zh-CN": "zhCN",
-  "en-US": "enUS",
   "ja-JP": "jaJP",
 };
 

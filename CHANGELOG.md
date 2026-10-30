@@ -7,6 +7,15 @@ the user's data file.
 
 ## Unreleased
 
+### Chinese and Japanese only (2026-10-30)
+
+- The English UI was removed; the language setting offers 简体中文 (default) and 日本語. Anyone who
+  had English selected, or imports such a backup, sees Chinese.
+- Built-in foods, recipes and demo data no longer carry English names; search by English words
+  or romaji no longer finds built-in foods.
+- Lists of dishes and lots are joined with "、" instead of ", ".
+- No database migration or backup format change; built-in data re-seeds on the next launch.
+
 ### Windows installer (round 4, part 2)
 
 - NSIS installer for Windows (`pnpm tauri build`); unsigned; current-user install.

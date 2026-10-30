@@ -15,7 +15,7 @@ import {
 import type { IngredientDefinition } from "@/domain/ingredients/types";
 import type { InventoryUnit } from "@/domain/ingredients/taxonomy";
 import { NUTRIENTS } from "@/domain/nutrition/types";
-import { formatNumber, formatNutrient } from "@/lib/format";
+import { formatList, formatNumber, formatNutrient } from "@/lib/format";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -57,7 +57,7 @@ export function IngredientDetailDialog({
             <div className="min-w-0">
               <DialogTitle>{nameOf(d)}</DialogTitle>
               <DialogDescription>
-                {[d.name.zhCN, d.name.enUS, d.name.jaJP].filter(Boolean).join(" · ")}
+                {[d.name.zhCN, d.name.jaJP].filter(Boolean).join(" · ")}
               </DialogDescription>
             </div>
           </div>
@@ -107,7 +107,7 @@ export function IngredientDetailDialog({
 
         <dl className="divide-y">
           {d.aliases.length > 0 && (
-            <Row label={t("ingredients.detailAliases")}>{d.aliases.join(", ")}</Row>
+            <Row label={t("ingredients.detailAliases")}>{formatList(d.aliases, locale)}</Row>
           )}
           {d.animalSpecies && (
             <Row label={t("ingredients.detailSpecies")}>{t(`species.${d.animalSpecies}`)}</Row>

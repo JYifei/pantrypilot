@@ -20,8 +20,9 @@ TypeScript and SQLite; it runs fully offline and sends your data nowhere.
 - **Cook and keep a log.** You confirm each deduction; the deductions and a cooking record are
   saved in one transaction, and retrying never deducts twice. Recently cooked dishes move down
   the list.
-- **Three languages.** Simplified Chinese (default), English and Japanese, for the UI and the
-  food names.
+- **Built for Japan, in Chinese and Japanese.** The UI and all food names are in Simplified
+  Chinese (default) and Japanese; the vocabulary follows Japanese supermarkets. There is no
+  English UI.
 
 It is **not** a calorie-counting or dieting app and gives no medical advice.
 
@@ -52,8 +53,8 @@ From the browser preview with the bundled, made-up demo data; the desktop app sh
 | Recipe detail: which lots each line uses                       | Cook dialog (Japanese): confirm or change each deduction   |
 | -------------------------------------------------------------- | ---------------------------------------------------------- |
 | ![Recipe detail](docs/screenshots/2-recipe-zh.png)             | ![Cook dialog in Japanese](docs/screenshots/3-cook-ja.png) |
-| **Meal plan (English): one merged gap for two dishes**         | **Cooking log: snapshots that survive deleted recipes**    |
-| ![Meal plan and shopping list](docs/screenshots/4-plan-en.png) | ![Cooking log](docs/screenshots/5-history-zh.png)          |
+| **Meal plan (Japanese): one merged gap for two dishes**        | **Cooking log: snapshots that survive deleted recipes**    |
+| ![Meal plan and shopping list](docs/screenshots/4-plan-ja.png) | ![Cooking log](docs/screenshots/5-history-zh.png)          |
 
 ## Privacy
 
@@ -68,8 +69,9 @@ the Vite dev server on `localhost` during development.
 - **Ingredient taxonomy** — ingredient definitions (nutrition identity, e.g. "beef misuji"),
   product forms (steak, yakiniku slices, ground…) and inventory lots are separate concepts.
   Built-in definitions have stable snake_case IDs; user data uses UUIDs.
-- **Trilingual** — UI and food names in Simplified Chinese (default), English and Japanese.
-  Search works across all three, including kana/width normalisation.
+- **Chinese and Japanese** — UI and food names in Simplified Chinese (default) and Japanese.
+  Search works in both, including kana/width normalisation. English was removed in favour of
+  a Japan-only scope (see [ADR 0006](docs/adr/0006-chinese-and-japanese-ui.md)).
 - **Inventory** — add / edit / delete lots, consume, adjust, discard, mark opened, change
   storage, freeze. Every change is recorded as a transaction. Remaining amounts never go negative.
 - **Expiration tracking** — expired / today / tomorrow / within 3 days / normal; sorting and a

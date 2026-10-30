@@ -237,6 +237,15 @@ describe("backup format", () => {
     expect(parseBackup(JSON.stringify(broken)).ok).toBe(false);
   });
 
+  it("imports a backup made while English could be selected, showing Chinese instead", () => {
+    const old = structuredClone(createBackup(data, "x")) as unknown as {
+      data: { settings: Record<string, unknown> };
+    };
+    old.data.settings.language = "en-US";
+    const result = parseBackup(JSON.stringify(old));
+    expect(result.ok && result.backup.data.settings.language).toBe("zh-CN");
+  });
+
   it("upgrades a V0.3 part 1 (schema version 3) backup with an empty plan", () => {
     const { planEntries: _plan, shoppingItems: _items, ...v3Data } = data;
     const v3 = { ...createBackup(data, "x"), schemaVersion: 3, data: v3Data };

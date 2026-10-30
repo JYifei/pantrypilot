@@ -36,11 +36,15 @@ Keep commits focused. Add or update tests for any change in `src/domain`, `src/s
 
 - All UI text goes through i18next. ESLint rejects CJK string literals in `src/app`,
   `src/components` and `src/features`.
-- `src/locales/zh-CN.json` is the reference. `en-US` and `ja-JP` must contain every key, with
-  the same `{{placeholders}}`; add all three languages in the same change.
+- The app has two UI languages: `zh-CN` (default) and `ja-JP`. Japanese wording is the reference
+  for terms (supermarket labels, dish names); Chinese is the reading language. Both files must
+  contain every key with the same `{{placeholders}}`; add both in the same change.
 - Tests check key parity in both directions, placeholder consistency and that every literal
-  `t("…")` key exists. The English → Chinese fallback chain is only a safety net at runtime.
-- Food names live in data (`LocalizedText { zhCN, enUS?, jaJP? }`), not in locale files.
+  `t("…")` key exists. Missing keys fall back to Chinese at runtime.
+- Food names live in data (`LocalizedText { zhCN, jaJP?, enUS? }`), not in locale files. Built-in
+  data has Chinese and Japanese only; `enUS` stays in the type so older backups still load.
+- Adding a language back means a locale file, an entry in `SUPPORTED_LOCALES`, a slot in
+  `LocalizedText` and translations for the built-in data.
 
 ## Database changes
 
@@ -66,13 +70,13 @@ Keep commits focused. Add or update tests for any change in `src/domain`, `src/s
 ## Adding an ingredient or recipe
 
 - **Ingredient:** add a definition to `src/data/builtinIngredients.ts` with a new stable
-  snake_case ID, names in all three languages, aliases (including Japanese supermarket wording)
+  snake_case ID, Chinese and Japanese names, aliases (Japanese supermarket wording, kana)
   and nutrition per 100 g edible portion marked `dataQuality: "demo"` unless it comes from a
   cited source. Then bump `BUILTIN_DATASET_VERSION` in `src/data/nutritionSources.ts` so existing
   databases re-seed. Released IDs must never change: lots, recipes and backups refer to them.
 - **Recipe:** add it to `src/data/builtinRecipes.ts` with a stable `recipe_…` ID, amounts in
-  edible grams for the base servings, seasonings as text, and names and steps in all three
-  languages. Bump `BUILTIN_RECIPES_VERSION` in the same file.
+  edible grams for the base servings, seasonings as text, and names and steps in Chinese
+  and Japanese. Bump `BUILTIN_RECIPES_VERSION` in the same file.
 - `pnpm test` checks IDs, translations, schema validity and ingredient references. Open the
   recipe in the app and check the match against the demo data.
 - Personal recipes and foods belong in the app (custom recipes and ingredients), not in the repo.

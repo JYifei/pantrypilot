@@ -51,8 +51,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Beef ────────────────────────────────────────────────────────────────
   builtin({
     id: "beef_misuji_raw",
-    name: { zhCN: "牛板腱", enUS: "Beef top blade (misuji)", jaJP: "牛ミスジ" },
-    aliases: ["ミスジ", "みすじ", "misuji", "top blade", "牛肩胛"],
+    name: { zhCN: "牛板腱", jaJP: "牛ミスジ" },
+    aliases: ["ミスジ", "みすじ", "牛肩胛"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "misuji",
@@ -62,8 +62,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "beef_sirloin_raw",
-    name: { zhCN: "牛西冷", enUS: "Beef sirloin", jaJP: "牛サーロイン" },
-    aliases: ["サーロイン", "sirloin", "西冷", "沙朗"],
+    name: { zhCN: "牛西冷", jaJP: "牛サーロイン" },
+    aliases: ["サーロイン", "西冷", "沙朗"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "sirloin",
@@ -73,8 +73,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "beef_rib_loin_raw",
-    name: { zhCN: "牛肋眼", enUS: "Beef rib loin", jaJP: "牛リブロース" },
-    aliases: ["リブロース", "ribeye", "rib eye", "肋眼"],
+    name: { zhCN: "牛肋眼", jaJP: "牛リブロース" },
+    aliases: ["リブロース", "肋眼"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "rib_loin",
@@ -84,8 +84,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "beef_shoulder_loin_raw",
-    name: { zhCN: "牛上脑", enUS: "Beef chuck eye (shoulder loin)", jaJP: "牛肩ロース" },
-    aliases: ["肩ロース", "chuck eye", "chuck roll", "上脑"],
+    name: { zhCN: "牛上脑", jaJP: "牛肩ロース" },
+    aliases: ["肩ロース", "上脑"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "shoulder_loin",
@@ -95,8 +95,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "beef_round_raw",
-    name: { zhCN: "牛后腿肉", enUS: "Beef round", jaJP: "牛もも" },
-    aliases: ["牛モモ", "round", "牛腿肉"],
+    name: { zhCN: "牛后腿肉", jaJP: "牛もも" },
+    aliases: ["牛モモ", "牛腿肉"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "round",
@@ -106,8 +106,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "beef_tenderloin_raw",
-    name: { zhCN: "牛菲力", enUS: "Beef tenderloin", jaJP: "牛ヒレ" },
-    aliases: ["ヒレ", "ヘレ", "フィレ", "fillet", "filet", "菲力", "牛里脊"],
+    name: { zhCN: "牛菲力", jaJP: "牛ヒレ" },
+    aliases: ["ヒレ", "ヘレ", "フィレ", "菲力", "牛里脊"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "tenderloin",
@@ -117,8 +117,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "beef_belly_raw",
-    name: { zhCN: "牛五花", enUS: "Beef short plate (belly)", jaJP: "牛バラ" },
-    aliases: ["バラ", "カルビ", "short plate", "brisket", "牛腩", "肥牛"],
+    name: { zhCN: "牛五花", jaJP: "牛バラ" },
+    aliases: ["バラ", "カルビ", "牛腩", "肥牛"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "belly",
@@ -128,8 +128,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "beef_ground_raw",
-    name: { zhCN: "牛肉馅", enUS: "Ground beef", jaJP: "牛ひき肉" },
-    aliases: ["牛ミンチ", "minced beef", "牛绞肉"],
+    name: { zhCN: "牛肉馅", jaJP: "牛ひき肉" },
+    aliases: ["牛ミンチ", "牛绞肉"],
     category: "meat",
     animalSpecies: "beef",
     anatomicalCut: "ground",
@@ -141,10 +141,9 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
     id: "beef_unspecified_raw",
     name: {
       zhCN: "牛肉（部位未指定）",
-      enUS: "Beef (unspecified cut)",
       jaJP: "牛肉（部位指定なし）",
     },
-    aliases: ["牛肉", "beef", "こま切れ", "切り落とし"],
+    aliases: ["牛肉", "こま切れ", "切り落とし"],
     category: "meat",
     animalSpecies: "beef",
     nutritionPer100g: null,
@@ -155,8 +154,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Pork ────────────────────────────────────────────────────────────────
   builtin({
     id: "pork_belly_raw",
-    name: { zhCN: "五花肉", enUS: "Pork belly", jaJP: "豚バラ" },
-    aliases: ["豚バラ肉", "三枚肉", "pork belly", "猪五花"],
+    name: { zhCN: "五花肉", jaJP: "豚バラ" },
+    aliases: ["豚バラ肉", "三枚肉", "猪五花"],
     category: "meat",
     animalSpecies: "pork",
     anatomicalCut: "belly",
@@ -166,8 +165,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "pork_loin_raw",
-    name: { zhCN: "猪外脊（大排）", enUS: "Pork loin", jaJP: "豚ロース" },
-    aliases: ["ロース", "pork loin", "大排", "猪外脊"],
+    name: { zhCN: "猪外脊（大排）", jaJP: "豚ロース" },
+    aliases: ["ロース", "大排", "猪外脊"],
     category: "meat",
     animalSpecies: "pork",
     anatomicalCut: "loin",
@@ -177,8 +176,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "pork_shoulder_loin_raw",
-    name: { zhCN: "猪梅花肉", enUS: "Pork shoulder loin (collar)", jaJP: "豚肩ロース" },
-    aliases: ["肩ロース", "pork collar", "梅花肉", "梅头肉"],
+    name: { zhCN: "猪梅花肉", jaJP: "豚肩ロース" },
+    aliases: ["肩ロース", "梅花肉", "梅头肉"],
     category: "meat",
     animalSpecies: "pork",
     anatomicalCut: "shoulder_loin",
@@ -188,8 +187,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "pork_tenderloin_raw",
-    name: { zhCN: "猪小里脊", enUS: "Pork tenderloin", jaJP: "豚ヒレ" },
-    aliases: ["ヒレ", "pork fillet", "里脊肉", "猪里脊"],
+    name: { zhCN: "猪小里脊", jaJP: "豚ヒレ" },
+    aliases: ["ヒレ", "里脊肉", "猪里脊"],
     category: "meat",
     animalSpecies: "pork",
     anatomicalCut: "tenderloin",
@@ -199,8 +198,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "pork_leg_raw",
-    name: { zhCN: "猪后腿肉", enUS: "Pork leg", jaJP: "豚もも" },
-    aliases: ["豚モモ", "pork ham", "猪腿肉"],
+    name: { zhCN: "猪后腿肉", jaJP: "豚もも" },
+    aliases: ["豚モモ", "猪腿肉"],
     category: "meat",
     animalSpecies: "pork",
     anatomicalCut: "leg",
@@ -210,8 +209,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "pork_ground_raw",
-    name: { zhCN: "猪肉馅", enUS: "Ground pork", jaJP: "豚ひき肉" },
-    aliases: ["豚ミンチ", "minced pork", "猪绞肉"],
+    name: { zhCN: "猪肉馅", jaJP: "豚ひき肉" },
+    aliases: ["豚ミンチ", "猪绞肉"],
     category: "meat",
     animalSpecies: "pork",
     anatomicalCut: "ground",
@@ -223,10 +222,9 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
     id: "pork_unspecified_raw",
     name: {
       zhCN: "猪肉（部位未指定）",
-      enUS: "Pork (unspecified cut)",
       jaJP: "豚肉（部位指定なし）",
     },
-    aliases: ["猪肉", "pork", "豚こま", "こま切れ", "切り落とし"],
+    aliases: ["猪肉", "豚こま", "こま切れ", "切り落とし"],
     category: "meat",
     animalSpecies: "pork",
     nutritionPer100g: null,
@@ -237,8 +235,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Chicken ─────────────────────────────────────────────────────────────
   builtin({
     id: "chicken_thigh_skin_on_raw",
-    name: { zhCN: "鸡腿肉（带皮）", enUS: "Chicken thigh, skin-on", jaJP: "鶏もも（皮付き）" },
-    aliases: ["鶏もも", "とりもも", "chicken thigh", "鸡腿"],
+    name: { zhCN: "鸡腿肉（带皮）", jaJP: "鶏もも（皮付き）" },
+    aliases: ["鶏もも", "とりもも", "鸡腿"],
     category: "meat",
     animalSpecies: "chicken",
     anatomicalCut: "thigh",
@@ -248,8 +246,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "chicken_breast_skinless_raw",
-    name: { zhCN: "鸡胸肉（去皮）", enUS: "Chicken breast, skinless", jaJP: "鶏むね（皮なし）" },
-    aliases: ["鶏むね", "とりむね", "chicken breast", "鸡胸"],
+    name: { zhCN: "鸡胸肉（去皮）", jaJP: "鶏むね（皮なし）" },
+    aliases: ["鶏むね", "とりむね", "鸡胸"],
     category: "meat",
     animalSpecies: "chicken",
     anatomicalCut: "breast",
@@ -259,8 +257,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "chicken_tender_raw",
-    name: { zhCN: "鸡小胸（鸡柳）", enUS: "Chicken tenderloin (sasami)", jaJP: "鶏ささみ" },
-    aliases: ["ささみ", "sasami", "chicken tender", "鸡柳", "鸡里脊"],
+    name: { zhCN: "鸡小胸（鸡柳）", jaJP: "鶏ささみ" },
+    aliases: ["ささみ", "鸡柳", "鸡里脊"],
     category: "meat",
     animalSpecies: "chicken",
     anatomicalCut: "tender",
@@ -270,8 +268,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "chicken_wing_raw",
-    name: { zhCN: "鸡翅（翅中连翅尖）", enUS: "Chicken wing", jaJP: "鶏手羽先" },
-    aliases: ["手羽先", "chicken wing", "鸡翅", "鸡中翅"],
+    name: { zhCN: "鸡翅（翅中连翅尖）", jaJP: "鶏手羽先" },
+    aliases: ["手羽先", "鸡翅", "鸡中翅"],
     category: "meat",
     animalSpecies: "chicken",
     anatomicalCut: "wing",
@@ -283,8 +281,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "chicken_drumette_raw",
-    name: { zhCN: "鸡翅根", enUS: "Chicken drumette", jaJP: "鶏手羽元" },
-    aliases: ["手羽元", "drumette", "翅根"],
+    name: { zhCN: "鸡翅根", jaJP: "鶏手羽元" },
+    aliases: ["手羽元", "翅根"],
     category: "meat",
     animalSpecies: "chicken",
     anatomicalCut: "drumette",
@@ -296,8 +294,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "chicken_ground_raw",
-    name: { zhCN: "鸡肉馅", enUS: "Ground chicken", jaJP: "鶏ひき肉" },
-    aliases: ["鶏ミンチ", "minced chicken", "鸡绞肉"],
+    name: { zhCN: "鸡肉馅", jaJP: "鶏ひき肉" },
+    aliases: ["鶏ミンチ", "鸡绞肉"],
     category: "meat",
     animalSpecies: "chicken",
     anatomicalCut: "ground",
@@ -309,10 +307,9 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
     id: "chicken_unspecified_raw",
     name: {
       zhCN: "鸡肉（部位未指定）",
-      enUS: "Chicken (unspecified cut)",
       jaJP: "鶏肉（部位指定なし）",
     },
-    aliases: ["鸡肉", "chicken", "鶏肉"],
+    aliases: ["鸡肉", "鶏肉"],
     category: "meat",
     animalSpecies: "chicken",
     nutritionPer100g: null,
@@ -323,8 +320,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Fish ────────────────────────────────────────────────────────────────
   builtin({
     id: "salmon_atlantic_raw",
-    name: { zhCN: "三文鱼（大西洋鲑）", enUS: "Atlantic salmon", jaJP: "アトランティックサーモン" },
-    aliases: ["サーモン", "鮭", "salmon", "三文鱼", "鲑鱼"],
+    name: { zhCN: "三文鱼（大西洋鲑）", jaJP: "アトランティックサーモン" },
+    aliases: ["サーモン", "鮭", "三文鱼", "鲑鱼"],
     category: "fish",
     nutritionPer100g: n(218, 20.1, 16.5, 0.1, { vitaminDMcg: 8 }),
     tags: ["oily_fish"],
@@ -333,8 +330,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "mackerel_raw",
-    name: { zhCN: "鲭鱼", enUS: "Chub mackerel", jaJP: "マサバ" },
-    aliases: ["さば", "サバ", "鯖", "mackerel", "青花鱼"],
+    name: { zhCN: "鲭鱼", jaJP: "マサバ" },
+    aliases: ["さば", "サバ", "鯖", "青花鱼"],
     category: "fish",
     defaultEdibleRatio: 0.5,
     nutritionPer100g: n(211, 20.6, 16.8, 0.3, { vitaminDMcg: 5 }),
@@ -346,8 +343,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Egg / tofu ──────────────────────────────────────────────────────────
   builtin({
     id: "egg_whole",
-    name: { zhCN: "鸡蛋", enUS: "Egg (whole)", jaJP: "鶏卵" },
-    aliases: ["たまご", "卵", "玉子", "egg", "蛋"],
+    name: { zhCN: "鸡蛋", jaJP: "鶏卵" },
+    aliases: ["たまご", "卵", "玉子", "蛋"],
     category: "egg",
     nutritionPer100g: n(142, 12.2, 10.2, 0.4, { calciumMg: 46, ironMg: 1.5, vitaminDMcg: 3.8 }),
     tags: [],
@@ -357,8 +354,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "tofu_momen",
-    name: { zhCN: "老豆腐（木棉）", enUS: "Firm tofu (momen)", jaJP: "木綿豆腐" },
-    aliases: ["もめん", "momen", "firm tofu", "北豆腐", "豆腐"],
+    name: { zhCN: "老豆腐（木棉）", jaJP: "木綿豆腐" },
+    aliases: ["もめん", "北豆腐", "豆腐"],
     category: "tofu",
     nutritionPer100g: n(73, 7, 4.9, 1.5, { fiberG: 1.1, calciumMg: 93, magnesiumMg: 57 }),
     tags: ["soy"],
@@ -367,8 +364,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "tofu_kinu",
-    name: { zhCN: "嫩豆腐（绢豆腐）", enUS: "Silken tofu (kinu)", jaJP: "絹ごし豆腐" },
-    aliases: ["きぬ", "kinugoshi", "silken tofu", "南豆腐", "豆腐"],
+    name: { zhCN: "嫩豆腐（绢豆腐）", jaJP: "絹ごし豆腐" },
+    aliases: ["きぬ", "南豆腐", "豆腐"],
     category: "tofu",
     nutritionPer100g: n(56, 5.3, 3.5, 2, { fiberG: 0.9 }),
     tags: ["soy"],
@@ -379,16 +376,16 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Grains / noodles ────────────────────────────────────────────────────
   builtin({
     id: "rice_white_raw",
-    name: { zhCN: "大米（生）", enUS: "White rice (uncooked)", jaJP: "精白米" },
-    aliases: ["米", "お米", "rice", "大米"],
+    name: { zhCN: "大米（生）", jaJP: "精白米" },
+    aliases: ["米", "お米", "大米"],
     category: "grain",
     nutritionPer100g: n(342, 6.1, 0.9, 77.6, { fiberG: 0.5 }),
     tags: ["staple"],
   }),
   builtin({
     id: "rice_cooked",
-    name: { zhCN: "米饭", enUS: "Cooked white rice", jaJP: "ご飯" },
-    aliases: ["ごはん", "白米", "rice", "白饭"],
+    name: { zhCN: "米饭", jaJP: "ご飯" },
+    aliases: ["ごはん", "白米", "白饭"],
     category: "grain",
     nutritionPer100g: n(156, 2.5, 0.3, 37.1, { fiberG: 1.5 }),
     tags: ["staple"],
@@ -396,8 +393,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "udon_cooked",
-    name: { zhCN: "乌冬面（熟）", enUS: "Udon noodles, boiled", jaJP: "ゆでうどん" },
-    aliases: ["うどん", "udon", "乌冬"],
+    name: { zhCN: "乌冬面（熟）", jaJP: "ゆでうどん" },
+    aliases: ["うどん", "乌冬"],
     category: "noodle",
     nutritionPer100g: n(95, 2.6, 0.4, 21.6, { fiberG: 1.3, sodiumMg: 120 }),
     tags: ["staple"],
@@ -409,8 +406,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "soba_cooked",
-    name: { zhCN: "荞麦面（熟）", enUS: "Soba noodles, boiled", jaJP: "ゆでそば" },
-    aliases: ["そば", "soba", "荞麦面"],
+    name: { zhCN: "荞麦面（熟）", jaJP: "ゆでそば" },
+    aliases: ["そば", "荞麦面"],
     category: "noodle",
     nutritionPer100g: n(130, 4.8, 1, 26, { fiberG: 2.9 }),
     tags: ["staple"],
@@ -421,8 +418,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Vegetables ──────────────────────────────────────────────────────────
   builtin({
     id: "komatsuna_raw",
-    name: { zhCN: "小松菜", enUS: "Komatsuna", jaJP: "小松菜" },
-    aliases: ["こまつな", "komatsuna", "japanese mustard spinach"],
+    name: { zhCN: "小松菜", jaJP: "小松菜" },
+    aliases: ["こまつな"],
     category: "vegetable",
     nutritionPer100g: n(13, 1.5, 0.2, 2.4, {
       fiberG: 1.9,
@@ -439,8 +436,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "spinach_raw",
-    name: { zhCN: "菠菜", enUS: "Spinach", jaJP: "ほうれん草" },
-    aliases: ["ほうれんそう", "spinach", "波菜"],
+    name: { zhCN: "菠菜", jaJP: "ほうれん草" },
+    aliases: ["ほうれんそう", "波菜"],
     category: "vegetable",
     nutritionPer100g: n(18, 2.2, 0.4, 3.1, { fiberG: 2.8, ironMg: 2, vitaminCMg: 35 }),
     tags: ["leafy_green"],
@@ -452,8 +449,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "cabbage_raw",
-    name: { zhCN: "卷心菜", enUS: "Cabbage", jaJP: "キャベツ" },
-    aliases: ["きゃべつ", "cabbage", "包菜", "圆白菜"],
+    name: { zhCN: "卷心菜", jaJP: "キャベツ" },
+    aliases: ["きゃべつ", "包菜", "圆白菜"],
     category: "vegetable",
     defaultEdibleRatio: 0.85,
     nutritionPer100g: n(21, 1.3, 0.2, 5.2, { fiberG: 1.8, vitaminCMg: 41 }),
@@ -463,8 +460,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "green_pepper_raw",
-    name: { zhCN: "青椒", enUS: "Green bell pepper (piman)", jaJP: "ピーマン" },
-    aliases: ["ぴーまん", "piman", "green pepper", "菜椒"],
+    name: { zhCN: "青椒", jaJP: "ピーマン" },
+    aliases: ["ぴーまん", "菜椒"],
     category: "vegetable",
     defaultEdibleRatio: 0.85,
     nutritionPer100g: n(20, 0.9, 0.2, 5.1, { fiberG: 2.3, vitaminCMg: 76 }),
@@ -477,8 +474,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "onion_raw",
-    name: { zhCN: "洋葱", enUS: "Onion", jaJP: "玉ねぎ" },
-    aliases: ["たまねぎ", "タマネギ", "onion", "圆葱"],
+    name: { zhCN: "洋葱", jaJP: "玉ねぎ" },
+    aliases: ["たまねぎ", "タマネギ", "圆葱"],
     category: "vegetable",
     defaultEdibleRatio: 0.94,
     nutritionPer100g: n(33, 1, 0.1, 8.4, { fiberG: 1.5 }),
@@ -488,8 +485,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "carrot_raw",
-    name: { zhCN: "胡萝卜", enUS: "Carrot", jaJP: "にんじん" },
-    aliases: ["人参", "ニンジン", "carrot", "红萝卜"],
+    name: { zhCN: "胡萝卜", jaJP: "にんじん" },
+    aliases: ["人参", "ニンジン", "红萝卜"],
     category: "vegetable",
     defaultEdibleRatio: 0.97,
     nutritionPer100g: n(35, 0.7, 0.1, 8.7, { fiberG: 2.4 }),
@@ -501,8 +498,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Mushrooms ───────────────────────────────────────────────────────────
   builtin({
     id: "shiitake_raw",
-    name: { zhCN: "鲜香菇", enUS: "Shiitake mushroom", jaJP: "生しいたけ" },
-    aliases: ["しいたけ", "椎茸", "シイタケ", "shiitake", "香菇"],
+    name: { zhCN: "鲜香菇", jaJP: "生しいたけ" },
+    aliases: ["しいたけ", "椎茸", "シイタケ", "香菇"],
     category: "mushroom",
     nutritionPer100g: n(25, 3.1, 0.3, 6.4, { fiberG: 4.9 }),
     tags: [],
@@ -514,8 +511,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "shimeji_raw",
-    name: { zhCN: "蟹味菇", enUS: "Shimeji mushroom", jaJP: "ぶなしめじ" },
-    aliases: ["しめじ", "シメジ", "shimeji", "真姬菇", "白玉菇"],
+    name: { zhCN: "蟹味菇", jaJP: "ぶなしめじ" },
+    aliases: ["しめじ", "シメジ", "真姬菇", "白玉菇"],
     category: "mushroom",
     nutritionPer100g: n(22, 2.7, 0.5, 4.8, { fiberG: 3 }),
     tags: [],
@@ -524,8 +521,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   }),
   builtin({
     id: "enoki_raw",
-    name: { zhCN: "金针菇", enUS: "Enoki mushroom", jaJP: "えのきたけ" },
-    aliases: ["えのき", "エノキ", "enoki"],
+    name: { zhCN: "金针菇", jaJP: "えのきたけ" },
+    aliases: ["えのき", "エノキ"],
     category: "mushroom",
     defaultEdibleRatio: 0.85,
     nutritionPer100g: n(34, 2.7, 0.2, 7.6, { fiberG: 3.9 }),
@@ -537,8 +534,8 @@ export const BUILTIN_INGREDIENTS: readonly IngredientDefinition[] = [
   // ── Dairy ───────────────────────────────────────────────────────────────
   builtin({
     id: "milk_whole",
-    name: { zhCN: "牛奶", enUS: "Whole milk", jaJP: "牛乳" },
-    aliases: ["ぎゅうにゅう", "ミルク", "milk", "鲜奶"],
+    name: { zhCN: "牛奶", jaJP: "牛乳" },
+    aliases: ["ぎゅうにゅう", "ミルク", "鲜奶"],
     category: "dairy",
     nutritionPer100g: n(61, 3.3, 3.8, 4.8, { calciumMg: 110 }),
     tags: [],

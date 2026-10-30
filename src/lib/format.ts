@@ -3,6 +3,13 @@ import type { NutrientInfo, NutrientUnit } from "@/domain/nutrition/types";
 
 /** Locale-aware formatting helpers. Units are SI symbols and are not translated. */
 
+const LIST_SEPARATOR: Record<LocaleCode, string> = { "zh-CN": "、", "ja-JP": "、" };
+
+/** Join names or amounts for display with the language's enumeration comma. */
+export function formatList(items: readonly string[], locale: LocaleCode): string {
+  return items.join(LIST_SEPARATOR[locale]);
+}
+
 export function formatNumber(value: number, locale: LocaleCode, maximumFractionDigits = 1): string {
   return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(value);
 }

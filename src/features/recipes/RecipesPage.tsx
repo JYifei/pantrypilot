@@ -16,7 +16,7 @@ import {
   type RecipeMatch,
 } from "@/domain/recipes/matching";
 import type { Recipe } from "@/domain/recipes/types";
-import { formatWeight } from "@/lib/format";
+import { formatList, formatWeight } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReadinessBadge, StatusDot } from "./RecipeBadges";
 import { RecipeDetailDialog } from "./RecipeDetailDialog";
@@ -101,18 +101,18 @@ function RecipeCard({ match, onOpen }: { match: RecipeMatch; onOpen: () => void 
         <div className="flex items-center gap-1.5 text-xs text-warning-foreground">
           <AlarmClock className="size-3.5 shrink-0 text-warning" />
           <span className="truncate">
-            {t("recipes.usesExpiring", { items: expiringItems.join(", ") })}
+            {t("recipes.usesExpiring", { items: formatList(expiringItems, locale) })}
           </span>
         </div>
       )}
       {unconfirmedNames.length > 0 && (
         <div className="truncate text-xs text-muted-foreground">
-          {t("recipes.confirmItems", { names: unconfirmedNames.join(", ") })}
+          {t("recipes.confirmItems", { names: formatList(unconfirmedNames, locale) })}
         </div>
       )}
       {shortItems.length > 0 && (
         <div className="truncate text-xs text-muted-foreground">
-          {t("recipes.shortItems", { items: shortItems.join(", ") })}
+          {t("recipes.shortItems", { items: formatList(shortItems, locale) })}
         </div>
       )}
       {cookedAgo && (

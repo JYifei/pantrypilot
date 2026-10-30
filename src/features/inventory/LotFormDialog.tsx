@@ -327,7 +327,7 @@ function LotFormBody({
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">{nameOf(d)}</div>
                         <div className="truncate text-xs text-muted-foreground">
-                          {[d.name.zhCN, d.name.enUS, d.name.jaJP]
+                          {[d.name.zhCN, d.name.jaJP]
                             .filter((n) => n && n !== nameOf(d))
                             .join(" · ")}
                         </div>

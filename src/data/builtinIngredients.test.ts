@@ -42,10 +42,10 @@ describe("built-in ingredient dataset", () => {
     }
   });
 
-  it("names every ingredient in all three languages", () => {
+  it("names every ingredient in Chinese and Japanese only", () => {
     for (const d of BUILTIN_INGREDIENTS) {
       expect(d.name.zhCN, d.id).toBeTruthy();
-      expect(d.name.enUS, d.id).toBeTruthy();
+      expect(d.name.enUS, d.id).toBeUndefined();
       expect(d.name.jaJP, d.id).toBeTruthy();
     }
   });

@@ -6,7 +6,7 @@ export const DEMO_SOURCE_ID = "pantrypilot_demo";
  * Bump whenever src/data changes so existing databases re-seed built-ins on
  * the next launch.
  */
-export const BUILTIN_DATASET_VERSION = "demo-2026.10.1";
+export const BUILTIN_DATASET_VERSION = "demo-2026.10.2";
 
 export const BUILTIN_NUTRITION_SOURCES: readonly NutritionSource[] = [
   {

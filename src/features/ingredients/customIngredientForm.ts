@@ -39,6 +39,7 @@ const REQUIRED_NUTRIENTS = NUTRIENTS.filter((n) => n.required).map((n) => n.key)
 export const customIngredientSchema = z
   .object({
     nameZh: z.string().refine((v) => !isBlank(v), { message: "validation.nameRequired" }),
+    /** Not editable; carries an English name from older data through edits. */
     nameEn: z.string(),
     nameJa: z.string(),
     aliases: z.string(),

@@ -23,7 +23,8 @@ describe("built-in recipes", () => {
     expect(recipe.ingredients.some((i) => !i.optional)).toBe(true);
     expect(recipe.steps.length).toBeGreaterThan(0);
     for (const text of [recipe.name, ...recipe.steps, ...recipe.seasonings]) {
-      expect(text.zhCN && text.enUS && text.jaJP).toBeTruthy();
+      expect(text.zhCN && text.jaJP).toBeTruthy();
+      expect(text.enUS).toBeUndefined();
     }
   });
 });

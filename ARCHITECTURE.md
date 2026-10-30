@@ -44,7 +44,7 @@ shadcn/ui (Radix) · Lucide · React Hook Form + Zod · i18next · Vitest · pnp
 | `src/app`          | Boot, global state (`AppProvider`), shell and navigation                      |
 | `src/features/*`   | One folder per screen: dashboard, inventory, recipes, nutrition, …            |
 | `src/components`   | Shared UI; `components/ui` is generated shadcn/ui                             |
-| `src/locales`      | `zh-CN.json` (reference), `en-US.json`, `ja-JP.json`                          |
+| `src/locales`      | `zh-CN.json` (default), `ja-JP.json`                                          |
 | `src/lib`          | i18n setup, formatting, file save/open helpers                                |
 | `src-tauri`        | Rust shell: plugins, migrations, transaction command, capabilities            |
 
@@ -289,8 +289,11 @@ wires everything and seeds built-in data. React reaches services only through `u
 
 ## Internationalisation
 
-i18next with three resource files. `zh-CN` is the reference and default language; missing keys
-fall back to `en-US`, then `zh-CN`. Enum values are translated by key (`cut.misuji`,
+i18next with two resource files, `zh-CN` (default) and `ja-JP`; missing keys fall back to
+`zh-CN`. The app targets Japan, so Japanese wording is the reference for terms and Chinese is the
+reading language. English was removed
+([ADR 0006](docs/adr/0006-chinese-and-japanese-ui.md)); a stored `en-US` setting or backup
+shows Chinese. Enum values are translated by key (`cut.misuji`,
 `form.steak`), so the domain never contains display strings. Food and recipe names are data, not
 locale keys. Lint and tests guard against hard-coded text and missing keys.
 

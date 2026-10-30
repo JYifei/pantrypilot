@@ -150,9 +150,6 @@ function CustomIngredientForm({
         >
           <Input id="nameZh" autoFocus {...register("nameZh")} />
         </FormField>
-        <FormField label={t("ingredients.formNameEn")} htmlFor="nameEn">
-          <Input id="nameEn" {...register("nameEn")} />
-        </FormField>
         <FormField label={t("ingredients.formNameJa")} htmlFor="nameJa">
           <Input id="nameJa" {...register("nameJa")} />
         </FormField>

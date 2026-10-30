@@ -6,7 +6,7 @@ import type {
   IngredientLineMatch,
   LotUse,
 } from "@/domain/recipes/matching";
-import { formatNumber, formatWeight } from "@/lib/format";
+import { formatList, formatNumber, formatWeight } from "@/lib/format";
 
 /** Human-readable explanations of a recipe allocation, shared by cards, details and cooking. */
 export function useRecipeText() {
@@ -81,7 +81,7 @@ export function useRecipeText() {
         if (names.length > 0) {
           notes.add(
             t(reason === "form" ? "recipes.excludedForm" : "recipes.excludedPrepared", {
-              names: names.join(", "),
+              names: formatList(names, locale),
             }),
           );
         }

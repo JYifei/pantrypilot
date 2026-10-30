@@ -33,7 +33,7 @@ import {
   type IngredientLineMatch,
 } from "@/domain/recipes/matching";
 import type { Recipe } from "@/domain/recipes/types";
-import { formatNumber, formatWeight } from "@/lib/format";
+import { formatList, formatNumber, formatWeight } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CookDialog } from "./CookDialog";
 import { ReadinessBadge, StatusDot } from "./RecipeBadges";
@@ -61,9 +61,10 @@ function LineRow({
     ingredient.count === undefined
       ? undefined
       : Math.round(((ingredient.count * servings) / recipe.servings) * 10) / 10;
-  const alternatives = (ingredient.alternatives ?? [])
-    .map((a) => nameOf(definitionsById.get(a.ingredientId)))
-    .join(", ");
+  const alternatives = formatList(
+    (ingredient.alternatives ?? []).map((a) => nameOf(definitionsById.get(a.ingredientId))),
+    locale,
+  );
   const notes = lineNotes(line);
 
   return (
@@ -106,7 +107,7 @@ function LineRow({
         </div>
         {line.uses.length > 0 && (
           <div className="text-xs text-muted-foreground">
-            {t("recipes.usesLots", { items: line.uses.map(lotUseLabel).join(", ") })}
+            {t("recipes.usesLots", { items: formatList(line.uses.map(lotUseLabel), locale) })}
           </div>
         )}
         {notes.map((note) => (

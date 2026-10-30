@@ -152,12 +152,12 @@ export function buildDemoBackup(today: IsoDate, settings: AppSettings): BackupFi
   }
 
   const names = {
-    onion: { zhCN: "洋葱", enUS: "Onion", jaJP: "玉ねぎ" },
-    rice: { zhCN: "大米（生）", enUS: "White rice (raw)", jaJP: "精白米" },
-    egg: { zhCN: "鸡蛋", enUS: "Egg (whole)", jaJP: "鶏卵" },
-    beefBelly: { zhCN: "牛五花", enUS: "Beef belly (short plate)", jaJP: "牛バラ" },
-    spinach: { zhCN: "菠菜", enUS: "Spinach", jaJP: "ほうれん草" },
-    tomato: { zhCN: "番茄", enUS: "Tomato", jaJP: "トマト" },
+    onion: { zhCN: "洋葱", jaJP: "玉ねぎ" },
+    rice: { zhCN: "大米（生）", jaJP: "精白米" },
+    egg: { zhCN: "鸡蛋", jaJP: "鶏卵" },
+    beefBelly: { zhCN: "牛五花", jaJP: "牛バラ" },
+    spinach: { zhCN: "菠菜", jaJP: "ほうれん草" },
+    tomato: { zhCN: "番茄", jaJP: "トマト" },
   } satisfies Record<string, LocalizedText>;
 
   const sessions: CookingSession[] = [];
@@ -207,7 +207,7 @@ export function buildDemoBackup(today: IsoDate, settings: AppSettings): BackupFi
     {
       id: "session-demo-spinach",
       recipeId: "recipe_spinach_ohitashi",
-      recipeName: { zhCN: "日式凉拌菠菜", enUS: "Spinach ohitashi", jaJP: "ほうれん草のおひたし" },
+      recipeName: { zhCN: "日式凉拌菠菜", jaJP: "ほうれん草のおひたし" },
       servings: 2,
       items: [item("greens", "lot-demo-old-spinach", "spinach_raw", names.spinach, { grams: 200 })],
     },
@@ -218,7 +218,7 @@ export function buildDemoBackup(today: IsoDate, settings: AppSettings): BackupFi
     {
       id: "session-demo-removed-recipe",
       recipeId: "recipe-demo-removed",
-      recipeName: { zhCN: "番茄炒蛋", enUS: "Tomato and egg stir-fry", jaJP: "トマトと卵の炒め物" },
+      recipeName: { zhCN: "番茄炒蛋", jaJP: "トマトと卵の炒め物" },
       servings: 2,
       items: [
         item("tomato", "lot-demo-old-tomatoes", "tomato_raw", names.tomato, { grams: 250 }),
@@ -234,7 +234,6 @@ export function buildDemoBackup(today: IsoDate, settings: AppSettings): BackupFi
     12,
     {
       zhCN: "这个菜谱后来删掉了，记录还在。",
-      enUS: "This recipe was deleted later; the record stays.",
       jaJP: "このレシピは後で削除しましたが、記録は残ります。",
     },
   );
@@ -242,7 +241,7 @@ export function buildDemoBackup(today: IsoDate, settings: AppSettings): BackupFi
     {
       id: "session-demo-gyudon",
       recipeId: "recipe_gyudon",
-      recipeName: { zhCN: "牛丼", enUS: "Gyudon (beef rice bowl)", jaJP: "牛丼" },
+      recipeName: { zhCN: "牛丼", jaJP: "牛丼" },
       servings: 2,
       items: [
         item("beef", "lot-demo-used-up-beef", "beef_belly_raw", names.beefBelly, {
@@ -255,13 +254,13 @@ export function buildDemoBackup(today: IsoDate, settings: AppSettings): BackupFi
     },
     -2,
     19,
-    { zhCN: "汤汁多放了一点。", enUS: "A little extra broth.", jaJP: "つゆを少し多めに。" },
+    { zhCN: "汤汁多放了一点。", jaJP: "つゆを少し多めに。" },
   );
   addSession(
     {
       id: "session-demo-fried-rice",
       recipeId: "recipe_egg_fried_rice",
-      recipeName: { zhCN: "鸡蛋炒饭", enUS: "Egg fried rice", jaJP: "卵チャーハン" },
+      recipeName: { zhCN: "鸡蛋炒饭", jaJP: "卵チャーハン" },
       servings: 2,
       items: [
         item("rice", "lot-demo-rice", "rice_white_raw", names.rice, { grams: 180 }),

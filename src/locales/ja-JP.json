@@ -20,7 +20,6 @@
   },
   "languages": {
     "zh-CN": "简体中文",
-    "en-US": "English",
     "ja-JP": "日本語"
   },
   "common": {
@@ -390,7 +389,6 @@
     "formTitleNew": "カスタム食材を作成",
     "formTitleEdit": "カスタム食材を編集",
     "formNameZh": "中国語名",
-    "formNameEn": "英語名",
     "formNameJa": "日本語名",
     "formAliases": "別名（カンマ区切り）",
     "formCategory": "カテゴリ",

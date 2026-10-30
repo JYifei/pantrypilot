@@ -1,10 +1,15 @@
-/** UI / content locales supported by the app. */
-export const SUPPORTED_LOCALES = ["zh-CN", "en-US", "ja-JP"] as const;
+/**
+ * UI / content locales offered in the app. The app targets Japan: Japanese is
+ * the reference wording and Chinese the reading language. Adding a locale means
+ * a locale file, an entry here and a LocalizedText slot.
+ */
+export const SUPPORTED_LOCALES = ["zh-CN", "ja-JP"] as const;
 export type LocaleCode = (typeof SUPPORTED_LOCALES)[number];
 
 /**
- * Text that exists in several languages. Simplified Chinese is required because
- * it is the primary UI language for V0.1; other languages are optional.
+ * Text that exists in several languages. Simplified Chinese is required (it is
+ * the default UI language); `enUS` is kept only so older data and backups that
+ * contain English still load. It is never shown.
  */
 export interface LocalizedText {
   zhCN: string;
@@ -14,18 +19,17 @@ export interface LocalizedText {
 
 const LOCALE_TO_KEY: Record<LocaleCode, keyof LocalizedText> = {
   "zh-CN": "zhCN",
-  "en-US": "enUS",
   "ja-JP": "jaJP",
 };
 
 /** Fallback order when the requested language is missing. */
-const FALLBACK_KEYS: (keyof LocalizedText)[] = ["enUS", "zhCN", "jaJP"];
+const FALLBACK_KEYS: (keyof LocalizedText)[] = ["zhCN", "jaJP"];
 
 export function isLocaleCode(value: unknown): value is LocaleCode {
   return typeof value === "string" && (SUPPORTED_LOCALES as readonly string[]).includes(value);
 }
 
-/** Pick the best available string for a locale, falling back to English, then Chinese. */
+/** Pick the best available string for a locale, falling back to Chinese, then Japanese. */
 export function localize(text: LocalizedText, locale: LocaleCode): string {
   const preferred = text[LOCALE_TO_KEY[locale]];
   if (preferred && preferred.trim() !== "") return preferred;

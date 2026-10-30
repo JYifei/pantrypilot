@@ -8,9 +8,16 @@ describe("normalizeSettings", () => {
   });
 
   it("keeps valid values and drops invalid ones", () => {
-    expect(normalizeSettings({ language: "en-US", theme: "neon", currency: 42 })).toEqual({
+    expect(normalizeSettings({ language: "ja-JP", theme: "neon", currency: 42 })).toEqual({
       ...DEFAULT_SETTINGS,
-      language: "en-US",
+      language: "ja-JP",
+    });
+  });
+
+  it("shows Chinese to anyone who had chosen the removed English UI", () => {
+    expect(normalizeSettings({ language: "en-US", theme: "dark" })).toEqual({
+      ...DEFAULT_SETTINGS,
+      theme: "dark",
     });
   });
 });

@@ -82,18 +82,18 @@ describe("recipe form", () => {
       ...BUILTIN_RECIPES.find((r) => r.id === "recipe_oyakodon")!,
       isBuiltin: false,
     };
-    const values = recipeToFormValues(original, "en-US");
-    values.steps = values.steps.replace("Slide over bowls of rice.", "Serve on rice.");
-    const input = formValuesToRecipeInput(values, "en-US", definitionsById, original);
+    const values = recipeToFormValues(original, "ja-JP");
+    values.steps = values.steps.replace("ごはんにのせる。", "ごはんに盛る。");
+    const input = formValuesToRecipeInput(values, "ja-JP", definitionsById, original);
 
     expect(input.name).toEqual(original.name);
     expect(input.ingredients).toEqual(original.ingredients);
     expect(input.steps.slice(0, 3)).toEqual(original.steps.slice(0, 3));
-    expect(input.steps[3]).toEqual({ zhCN: "Serve on rice.", enUS: "Serve on rice." });
+    expect(input.steps[3]).toEqual({ zhCN: "ごはんに盛る。", jaJP: "ごはんに盛る。" });
   });
 
   it("mergeLocalized writes the current language slot", () => {
-    expect(mergeLocalized(undefined, "Curry", "en-US")).toEqual({ zhCN: "Curry", enUS: "Curry" });
+    expect(mergeLocalized(undefined, "咖喱", "zh-CN")).toEqual({ zhCN: "咖喱" });
     expect(mergeLocalized(undefined, "カレー", "ja-JP")).toEqual({
       zhCN: "カレー",
       jaJP: "カレー",

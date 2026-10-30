@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import enUS from "./en-US.json";
 import jaJP from "./ja-JP.json";
 import zhCN from "./zh-CN.json";
 
@@ -20,17 +19,11 @@ function placeholders(text: string): string[] {
 }
 
 const zh = flatten(zhCN as Tree);
-const en = flatten(enUS as Tree);
 const ja = flatten(jaJP as Tree);
 
 describe("locale files", () => {
   it("zh-CN (primary language) has no empty strings", () => {
     for (const [key, value] of zh) expect(value.trim(), key).not.toBe("");
-  });
-
-  it("en-US covers every zh-CN key", () => {
-    const missing = [...zh.keys()].filter((k) => !en.has(k));
-    expect(missing).toEqual([]);
   });
 
   it("ja-JP covers every zh-CN key", () => {
@@ -39,16 +32,13 @@ describe("locale files", () => {
   });
 
   it("other locales contain no keys unknown to zh-CN", () => {
-    expect([...en.keys()].filter((k) => !zh.has(k))).toEqual([]);
     expect([...ja.keys()].filter((k) => !zh.has(k))).toEqual([]);
   });
 
   it("keeps interpolation placeholders consistent", () => {
     for (const [key, value] of zh) {
-      for (const other of [en, ja]) {
-        const translated = other.get(key);
-        if (translated) expect(placeholders(translated), key).toEqual(placeholders(value));
-      }
+      const translated = ja.get(key);
+      if (translated) expect(placeholders(translated), key).toEqual(placeholders(value));
     }
   });
 });
